@@ -41,7 +41,10 @@
 /* One-by-one scroll snapping for the full-screen campaign sections.
    Applied at the document level so window scroll (and the header listener) still work. */
 html {
-  scroll-snap-type: y mandatory;
+  /* "proximity" (not "mandatory") so tall trailing content like the footer
+     can still be scrolled to freely instead of being snapped back to the
+     last full-screen section. */
+  scroll-snap-type: y proximity;
   scroll-behavior: smooth;
 }
 
