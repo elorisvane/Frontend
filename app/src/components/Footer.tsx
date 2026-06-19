@@ -22,10 +22,10 @@ const columns = [
   {
     title: "DISCOVER",
     links: [
-      { href: "/", label: "High Jewellery" },
-      { href: "/", label: "Watches" },
-      { href: "/", label: "Collections" },
-      { href: "/", label: "Gifts" },
+      { href: "/products", label: "High Jewellery" },
+      { href: "/products", label: "Watches" },
+      { href: "/products", label: "Collections" },
+      { href: "/products", label: "Gifts" },
     ],
   },
 ];
