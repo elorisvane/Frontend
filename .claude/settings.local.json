@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx tsc *)",
+      "Bash(echo \"exit $?\")",
+      "WebFetch(domain:www.figma.com)",
+      "Bash(file \"Frame 1.png\")",
+      "Bash(python -c \"from PIL import Image; im=Image.open\\('Frame 1.png'\\); print\\('size:', im.size\\)\")",
+      "Bash(powershell -Command 'Add-Type -AssemblyName System.Drawing; $i=[System.Drawing.Image]::FromFile\\('\\\\''e:\\\\Eloris\\\\Frontend\\\\public\\\\Frame 1.png'\\\\''\\); Write-Output \"$\\($i.Width\\)x$\\($i.Height\\)\"')"
+    ]
+  }
+}
