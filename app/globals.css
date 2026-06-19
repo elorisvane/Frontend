@@ -38,6 +38,20 @@
   }
 }
 
+/* One-by-one scroll snapping for the full-screen campaign sections.
+   Applied at the document level so window scroll (and the header listener) still work. */
+html {
+  scroll-snap-type: y mandatory;
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-snap-type: none;
+    scroll-behavior: auto;
+  }
+}
+
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0d0d0d;

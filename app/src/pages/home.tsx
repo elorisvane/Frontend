@@ -114,20 +114,47 @@ export default function Home() {
 
           {/* Icons (right) */}
           <div className="flex items-center gap-5 text-white md:gap-7">
-            <button aria-label="Search" className="transition-colors hover:text-gold-200">
-              <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.2" viewBox="0 0 24 24">
+            <button
+              aria-label="Search"
+              className="transition-colors hover:text-gold-200"
+            >
+              <svg
+                className="h-5 w-5"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.2"
+                viewBox="0 0 24 24"
+              >
                 <circle cx="11" cy="11" r="7" />
                 <path strokeLinecap="round" d="m20 20-3.5-3.5" />
               </svg>
             </button>
-            <button aria-label="Account" className="hidden transition-colors hover:text-gold-200 sm:block">
-              <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.2" viewBox="0 0 24 24">
+            <button
+              aria-label="Account"
+              className="hidden transition-colors hover:text-gold-200 sm:block"
+            >
+              <svg
+                className="h-5 w-5"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.2"
+                viewBox="0 0 24 24"
+              >
                 <circle cx="12" cy="8" r="4" />
                 <path strokeLinecap="round" d="M4 20c0-4 3.6-6 8-6s8 2 8 6" />
               </svg>
             </button>
-            <button aria-label="Wishlist" className="hidden transition-colors hover:text-gold-200 sm:block">
-              <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.2" viewBox="0 0 24 24">
+            <button
+              aria-label="Wishlist"
+              className="hidden transition-colors hover:text-gold-200 sm:block"
+            >
+              <svg
+                className="h-5 w-5"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.2"
+                viewBox="0 0 24 24"
+              >
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -135,9 +162,22 @@ export default function Home() {
                 />
               </svg>
             </button>
-            <button aria-label="Bag" className="transition-colors hover:text-gold-200">
-              <svg className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.2" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M6 8h12l-1 12H7L6 8Z" />
+            <button
+              aria-label="Bag"
+              className="transition-colors hover:text-gold-200"
+            >
+              <svg
+                className="h-5 w-5"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.2"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M6 8h12l-1 12H7L6 8Z"
+                />
                 <path strokeLinecap="round" d="M9 8a3 3 0 0 1 6 0" />
               </svg>
             </button>
@@ -154,14 +194,26 @@ export default function Home() {
         }`}
       >
         <div className="flex items-center justify-between">
-          <span className="font-serif text-xl font-light tracking-[0.4em]">ÉLORIS</span>
+          <span className="font-serif text-xl font-light tracking-[0.4em]">
+            ÉLORIS
+          </span>
           <button
             onClick={() => setMobileMenuOpen(false)}
             aria-label="Close menu"
             className="text-white/60 transition-colors hover:text-white"
           >
-            <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1" d="M6 18 18 6M6 6l12 12" />
+            <svg
+              className="h-6 w-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="1"
+                d="M6 18 18 6M6 6l12 12"
+              />
             </svg>
           </button>
         </div>
@@ -180,8 +232,12 @@ export default function Home() {
         </nav>
 
         <div className="flex flex-col items-center space-y-4 font-sans text-xs tracking-[0.2em] text-white/50">
-          <a href="#" className="hover:text-white">MY ACCOUNT</a>
-          <a href="#" className="hover:text-white">STORE LOCATOR</a>
+          <a href="#" className="hover:text-white">
+            MY ACCOUNT
+          </a>
+          <a href="#" className="hover:text-white">
+            STORE LOCATOR
+          </a>
         </div>
       </div>
 
@@ -191,7 +247,7 @@ export default function Home() {
           <section
             key={section.id}
             id={section.id}
-            className="relative flex h-screen w-full flex-col items-center justify-end overflow-hidden"
+            className="relative flex h-screen w-full snap-start flex-col items-center justify-end overflow-hidden"
           >
             <Image
               src={section.image}
@@ -217,9 +273,12 @@ export default function Home() {
         ))}
 
         {/* --- BOTTOM GALLERY --- */}
-        <section className="grid grid-cols-1 gap-[2px] bg-[#0d0d0d] md:grid-cols-3">
+        <section className="grid grid-cols-1 gap-[2px] bg-[#0d0d0d] md:grid-cols-3 snap-start">
           {galleryImages.map((img) => (
-            <div key={img.src} className="group relative aspect-[3/4] overflow-hidden">
+            <div
+              key={img.src}
+              className="group relative aspect-[3/4] overflow-hidden"
+            >
               <Image
                 src={img.src}
                 alt={img.alt}
@@ -233,8 +292,10 @@ export default function Home() {
       </main>
 
       {/* --- SLIM FOOTER --- */}
-      <footer className="bg-black px-6 py-10 text-center md:px-12">
-        <span className="font-serif text-lg font-light tracking-[0.4em] text-white">ÉLORIS</span>
+      <footer className="bg-black px-6 py-10 text-center md:px-12 snap-end">
+        <span className="font-serif text-lg font-light tracking-[0.4em] text-white">
+          ÉLORIS
+        </span>
         <p className="mt-3 font-sans text-[10px] tracking-[0.2em] text-white/40">
           &copy; {new Date().getFullYear()} ELORIS USA. ALL RIGHTS RESERVED.
         </p>
