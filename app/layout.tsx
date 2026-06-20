@@ -18,15 +18,51 @@ const futura = localFont({
   variable: "--font-futura",
   display: "swap",
   src: [
-    { path: "../public/font/FuturaPT-Light.woff2", weight: "300", style: "normal" },
-    { path: "../public/font/FuturaPT-LightObl.woff2", weight: "300", style: "italic" },
-    { path: "../public/font/FuturaPT-Book.woff2", weight: "400", style: "normal" },
-    { path: "../public/font/FuturaPT-BookObl.woff2", weight: "400", style: "italic" },
-    { path: "../public/font/FuturaPT-Medium.woff2", weight: "500", style: "normal" },
-    { path: "../public/font/FuturaPT-MediumObl.woff2", weight: "500", style: "italic" },
-    { path: "../public/font/FuturaPT-Demi.woff2", weight: "600", style: "normal" },
-    { path: "../public/font/FuturaPT-Bold.woff2", weight: "700", style: "normal" },
-    { path: "../public/font/FuturaPT-BoldObl.woff2", weight: "700", style: "italic" },
+    {
+      path: "../public/font/FuturaPT-Light.woff2",
+      weight: "300",
+      style: "normal",
+    },
+    {
+      path: "../public/font/FuturaPT-LightObl.woff2",
+      weight: "300",
+      style: "italic",
+    },
+    {
+      path: "../public/font/FuturaPT-Book.woff2",
+      weight: "400",
+      style: "normal",
+    },
+    {
+      path: "../public/font/FuturaPT-BookObl.woff2",
+      weight: "400",
+      style: "italic",
+    },
+    {
+      path: "../public/font/FuturaPT-Medium.woff2",
+      weight: "500",
+      style: "normal",
+    },
+    {
+      path: "../public/font/FuturaPT-MediumObl.woff2",
+      weight: "500",
+      style: "italic",
+    },
+    {
+      path: "../public/font/FuturaPT-Demi.woff2",
+      weight: "600",
+      style: "normal",
+    },
+    {
+      path: "../public/font/FuturaPT-Bold.woff2",
+      weight: "700",
+      style: "normal",
+    },
+    {
+      path: "../public/font/FuturaPT-BoldObl.woff2",
+      weight: "700",
+      style: "italic",
+    },
   ],
 });
 
@@ -43,6 +79,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
+      data-scroll-behavior="smooth"
       className={`${geistSans.variable} ${geistMono.variable} ${futura.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">{children}</body>
