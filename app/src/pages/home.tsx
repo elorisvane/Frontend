@@ -115,10 +115,10 @@ function CampaignArtwork({
       <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
 
       <div className="absolute inset-0 z-10 flex flex-col items-center justify-end pb-16 text-center md:pb-20">
-        <h2 className="font-sans text-lg font-medium uppercase tracking-[0.35em] pl-[0.35em] text-white drop-shadow-sm md:text-xl">
+        <h2 className="font-sans text-lg font-medium uppercase tracking-wider text-white drop-shadow-sm md:text-xl">
           {section.title}
         </h2>
-        <p className="mt-2 font-sans text-[10px] uppercase tracking-[0.4em] pl-[0.4em] text-white/70">
+        <p className="mt-3 font-sans text-[10px] uppercase tracking-wider text-white underline underline-offset-4 transition-opacity hover:opacity-70">
           {section.subtitle}
         </p>
         <DotIndicator />
