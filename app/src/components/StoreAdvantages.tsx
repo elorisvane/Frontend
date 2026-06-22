@@ -34,7 +34,7 @@ export default function StoreAdvantages() {
   return (
     <section className="border-t border-neutral-200 bg-white px-6 py-16 md:px-12 md:py-20">
       <div className="mx-auto max-w-[1400px]">
-        <h2 className="text-center font-sans text-sm font-medium uppercase tracking-[0.35em] text-neutral-800">
+        <h2 className="text-center font-sans text-[40px] font-normal uppercase leading-[30px] tracking-normal text-neutral-800">
           Online Store Advantages
         </h2>
 
@@ -52,10 +52,10 @@ export default function StoreAdvantages() {
                 className="h-8 w-8 object-contain"
                 aria-hidden
               />
-              <h3 className="mt-5 font-sans text-[11px] font-semibold uppercase tracking-[0.2em] text-neutral-900">
+              <h3 className="mt-5 text-center font-sans text-base font-medium leading-none tracking-normal text-neutral-900 [font-weight:450]">
                 {a.title}
               </h3>
-              <p className="mt-3 max-w-[220px] font-sans text-[11px] leading-relaxed tracking-[0.04em] text-neutral-500">
+              <p className="mt-3 max-w-[220px] text-center font-sans text-base font-normal leading-none tracking-normal text-neutral-500">
                 {a.text}
               </p>
             </div>
