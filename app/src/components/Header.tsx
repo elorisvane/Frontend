@@ -124,9 +124,6 @@ export default function Header({
             >
               ÉLORIS
             </span>
-            {/* <span className="mt-1 font-sans text-[9px] tracking-[0.5em] text-white/70">
-              USA
-            </span> */}
           </Link>
 
           {/* Icons (right) */}

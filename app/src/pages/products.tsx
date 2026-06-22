@@ -271,16 +271,6 @@ export default function Products() {
                   <input
                     type="radio"
                     name="sortBy"
-                    checked={sortBy === "recommended"}
-                    onChange={() => setSortBy("recommended")}
-                    className="h-3.5 w-3.5 appearance-none border border-neutral-300 rounded-full checked:bg-gold-500 checked:border-gold-500 checked:after:content-[''] checked:after:h-1.5 checked:after:w-1.5 checked:after:bg-white checked:after:rounded-full checked:after:block checked:after:m-auto transition-all focus:outline-none flex items-center justify-center"
-                  />
-                  RECOMMENDED
-                </label>
-                <label className="flex items-center gap-3 cursor-pointer hover:text-neutral-900">
-                  <input
-                    type="radio"
-                    name="sortBy"
                     checked={sortBy === "low-to-high"}
                     onChange={() => setSortBy("low-to-high")}
                     className="h-3.5 w-3.5 appearance-none border border-neutral-300 rounded-full checked:bg-gold-500 checked:border-gold-500 checked:after:content-[''] checked:after:h-1.5 checked:after:w-1.5 checked:after:bg-white checked:after:rounded-full checked:after:block checked:after:m-auto transition-all focus:outline-none flex items-center justify-center"
@@ -296,6 +286,16 @@ export default function Products() {
                     className="h-3.5 w-3.5 appearance-none border border-neutral-300 rounded-full checked:bg-gold-500 checked:border-gold-500 checked:after:content-[''] checked:after:h-1.5 checked:after:w-1.5 checked:after:bg-white checked:after:rounded-full checked:after:block checked:after:m-auto transition-all focus:outline-none flex items-center justify-center"
                   />
                   PRICE HIGH TO LOW
+                </label>
+                <label className="flex items-center gap-3 cursor-pointer hover:text-neutral-900">
+                  <input
+                    type="radio"
+                    name="sortBy"
+                    checked={sortBy === "recommended"}
+                    onChange={() => setSortBy("recommended")}
+                    className="h-3.5 w-3.5 appearance-none border border-neutral-300 rounded-full checked:bg-gold-500 checked:border-gold-500 checked:after:content-[''] checked:after:h-1.5 checked:after:w-1.5 checked:after:bg-white checked:after:rounded-full checked:after:block checked:after:m-auto transition-all focus:outline-none flex items-center justify-center"
+                  />
+                  RECOMMENDED
                 </label>
               </div>
             </div>
@@ -327,7 +327,7 @@ export default function Products() {
                 <span>CATEGORY</span>
                 <svg
                   className={`h-3 w-3 transform transition-transform duration-300 ${
-                    categoryOpen ? "rotate-180" : ""
+                    categoryOpen ? "" : "rotate-180"
                   }`}
                   fill="none"
                   stroke="currentColor"
@@ -378,7 +378,7 @@ export default function Products() {
                 <span>COLLECTION</span>
                 <svg
                   className={`h-3 w-3 transform transition-transform duration-300 ${
-                    collectionOpen ? "rotate-180" : ""
+                    collectionOpen ? "" : "rotate-180"
                   }`}
                   fill="none"
                   stroke="currentColor"
@@ -452,7 +452,7 @@ export default function Products() {
             ) : (
               /* Asymmetric Grid */
               <div
-                className={`grid auto-rows-fr grid-cols-1 gap-x-6 gap-y-12 sm:grid-cols-2 ${
+                className={`grid auto-rows-fr grid-flow-row-dense grid-cols-1 gap-x-6 gap-y-12 sm:grid-cols-2 ${
                   viewMode === "feed" ? "lg:grid-cols-2" : "lg:grid-cols-4"
                 }`}
               >
@@ -574,16 +574,6 @@ export default function Products() {
                   <input
                     type="radio"
                     name="sortByMobile"
-                    checked={sortBy === "recommended"}
-                    onChange={() => setSortBy("recommended")}
-                    className="h-3.5 w-3.5 border-neutral-300 text-gold-500 focus:ring-gold-500"
-                  />
-                  RECOMMENDED
-                </label>
-                <label className="flex items-center gap-3 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="sortByMobile"
                     checked={sortBy === "low-to-high"}
                     onChange={() => setSortBy("low-to-high")}
                     className="h-3.5 w-3.5 border-neutral-300 text-gold-500 focus:ring-gold-500"
@@ -599,6 +589,16 @@ export default function Products() {
                     className="h-3.5 w-3.5 border-neutral-300 text-gold-500 focus:ring-gold-500"
                   />
                   PRICE HIGH TO LOW
+                </label>
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="sortByMobile"
+                    checked={sortBy === "recommended"}
+                    onChange={() => setSortBy("recommended")}
+                    className="h-3.5 w-3.5 border-neutral-300 text-gold-500 focus:ring-gold-500"
+                  />
+                  RECOMMENDED
                 </label>
               </div>
             </div>

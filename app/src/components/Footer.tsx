@@ -2,31 +2,27 @@ import Link from "next/link";
 
 const columns = [
   {
-    title: "THE MAISON",
+    title: "CONTACT US",
     links: [
-      { href: "/about", label: "Our Story" },
-      { href: "/about", label: "Craftsmanship" },
-      { href: "/blog", label: "The Journal" },
-      { href: "/contact", label: "Careers" },
+      { href: "/products", label: "Jewelry" },
+      { href: "/products", label: "High Jewelry" },
+      { href: "/about", label: "The Maison" },
+      { href: "/contact", label: "Our Boutiques" },
     ],
   },
   {
-    title: "CLIENT CARE",
+    title: "CUSTOMER SERVICE",
     links: [
       { href: "/contact", label: "Contact Us" },
-      { href: "/contact", label: "Book an Appointment" },
-      { href: "/contact", label: "Shipping & Returns" },
+      { href: "/contact", label: "Delivery & Returns" },
       { href: "/account", label: "My Account" },
+      { href: "/contact", label: "Advice & Services" },
+      { href: "/contact", label: "Any Question?" },
     ],
   },
   {
-    title: "DISCOVER",
-    links: [
-      { href: "/products", label: "High Jewellery" },
-      { href: "/products", label: "Watches" },
-      { href: "/products", label: "Collections" },
-      { href: "/products", label: "Gifts" },
-    ],
+    title: "SHOP",
+    links: [{ href: "/contact", label: "Find a Boutique" }],
   },
 ];
 
