@@ -78,3 +78,12 @@ body {
   border-radius: 3px;
 }
 
+/* Hide the scrollbar (e.g. on horizontal media tracks) while keeping scroll. */
+.no-scrollbar {
+  -ms-overflow-style: none; /* IE / old Edge */
+  scrollbar-width: none; /* Firefox */
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none; /* Chrome / Safari / Brave */
+}
+

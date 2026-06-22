@@ -4,6 +4,7 @@ import { useEffect, useRef, useSyncExternalStore } from "react";
 import Image from "next/image";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
+import StoreAdvantages from "../components/StoreAdvantages";
 
 interface Section {
   id: string;
@@ -35,7 +36,7 @@ const sections: Section[] = [
     id: "high-jewellery",
     title: "HIGH JEWELLERY",
     subtitle: "DISCOVER THE CAMPAIGN",
-    image: "/assets/1 (4).png",
+    image: "/assets/1 (6).png",
   },
   {
     id: "watch",
@@ -55,6 +56,7 @@ const galleryImages = [
   { src: "/assets/1 (2).png", alt: "Diamond earring" },
   { src: "/assets/1 (5).png", alt: "Gold chain necklace" },
   { src: "/assets/1 (6).png", alt: "Sculpted ring" },
+  { src: "/assets/1 (7).png", alt: "Sculpted ring" },
 ];
 
 /** Animated vertical loading indicator (Lottie) shown beneath each caption.
@@ -250,23 +252,24 @@ export default function Home() {
         )}
 
         {/* --- BOTTOM GALLERY --- */}
-        <section className="grid grid-cols-1 gap-[2px] bg-neutral-200 md:grid-cols-3 snap-start">
-          {galleryImages.map((img) => (
+        <section className="no-scrollbar flex snap-x snap-mandatory gap-[2px] overflow-x-auto bg-neutral-200">
+          {galleryImages.map((img, i) => (
             <div
-              key={img.src}
-              className="group relative aspect-[3/4] overflow-hidden"
+              key={`${img.src}-${i}`}
+              className="group relative aspect-[839/1075] w-[85vw] shrink-0 snap-start overflow-hidden md:w-[839px]"
             >
               <Image
                 src={img.src}
                 alt={img.alt}
                 fill
-                sizes="(max-width: 768px) 100vw, 33vw"
+                sizes="(max-width: 768px) 85vw, 839px"
                 className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
               />
             </div>
           ))}
         </section>
       </main>
+      <StoreAdvantages />
       <Footer />
     </div>
   );
