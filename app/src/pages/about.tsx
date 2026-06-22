@@ -20,10 +20,10 @@ const values = [
 
 export default function About() {
   return (
-    <div className="min-h-screen bg-[#0d0d0d] text-white selection:bg-gold-300 selection:text-black">
+    <div className="min-h-screen bg-white text-neutral-900 selection:bg-gold-200 selection:text-black">
       <Header transparent />
 
-      {/* --- HERO --- */}
+      {/* --- HERO (text sits over a dark image, so it stays light) --- */}
       <section className="relative flex h-[80vh] w-full items-end justify-center overflow-hidden">
         <Image
           src="/assets/1 (3).png"
@@ -34,8 +34,8 @@ export default function About() {
           className="object-cover object-center"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-black/30" />
-        <div className="relative z-10 pb-20 text-center">
-          <p className="font-sans text-[10px] uppercase tracking-[0.5em] text-gold-200">
+        <div className="relative z-10 pb-20 text-center text-white">
+          <p className="font-sans text-[10px] uppercase tracking-[0.5em] text-white/70">
             The Maison
           </p>
           <h1 className="mt-4 font-serif text-4xl font-light tracking-[0.15em] md:text-6xl">
@@ -46,10 +46,10 @@ export default function About() {
 
       {/* --- INTRO --- */}
       <section className="mx-auto max-w-3xl px-6 py-24 text-center">
-        <p className="font-serif text-2xl font-light leading-relaxed tracking-[0.04em] text-white/90 md:text-3xl">
+        <p className="font-serif text-2xl font-light leading-relaxed tracking-[0.04em] text-neutral-800 md:text-3xl">
           &ldquo;We do not follow time. We create pieces that defy it.&rdquo;
         </p>
-        <p className="mt-8 font-sans text-sm leading-loose tracking-[0.05em] text-white/60">
+        <p className="mt-8 font-sans text-sm leading-loose tracking-[0.05em] text-neutral-500">
           ÉLORIS was born from a belief that true luxury is felt, not merely seen. From a
           modest atelier to a name spoken in the same breath as the world&rsquo;s great
           houses, our journey has been guided by one principle — that beauty, made with
@@ -58,14 +58,14 @@ export default function About() {
       </section>
 
       {/* --- VALUES --- */}
-      <section className="border-y border-white/10 bg-black/40 px-6 py-20 md:px-12">
+      <section className="border-y border-neutral-200 bg-neutral-50 px-6 py-20 md:px-12">
         <div className="mx-auto grid max-w-[1400px] grid-cols-1 gap-12 md:grid-cols-3">
           {values.map((v) => (
             <div key={v.title} className="text-center md:text-left">
-              <h2 className="font-sans text-xs font-medium tracking-[0.35em] text-gold-200">
+              <h2 className="font-sans text-xs font-medium tracking-[0.35em] text-neutral-500">
                 {v.title}
               </h2>
-              <p className="mt-5 font-sans text-sm leading-loose tracking-[0.04em] text-white/60">
+              <p className="mt-5 font-sans text-sm leading-loose tracking-[0.04em] text-neutral-500">
                 {v.text}
               </p>
             </div>
@@ -85,13 +85,13 @@ export default function About() {
           />
         </div>
         <div className="md:pl-10">
-          <p className="font-sans text-[10px] uppercase tracking-[0.5em] text-gold-200">
+          <p className="font-sans text-[10px] uppercase tracking-[0.5em] text-neutral-500">
             The Atelier
           </p>
           <h2 className="mt-4 font-serif text-3xl font-light tracking-[0.1em] md:text-4xl">
             Where hands shape history
           </h2>
-          <p className="mt-6 font-sans text-sm leading-loose tracking-[0.04em] text-white/60">
+          <p className="mt-6 font-sans text-sm leading-loose tracking-[0.04em] text-neutral-500">
             Behind every ÉLORIS creation stands a community of artisans — gem-setters,
             polishers, designers and goldsmiths — who devote their lives to a single
             pursuit. It is here, in the quiet of the workshop, that raw materials are
@@ -99,7 +99,7 @@ export default function About() {
           </p>
           <Link
             href="/contact"
-            className="mt-8 inline-block border border-white/40 px-8 py-3 font-sans text-[11px] tracking-[0.3em] text-white transition-colors hover:border-gold-200 hover:text-gold-200"
+            className="mt-8 inline-block border border-neutral-900 px-8 py-3 font-sans text-[11px] tracking-[0.3em] text-neutral-900 transition-colors hover:bg-neutral-900 hover:text-white"
           >
             VISIT US
           </Link>

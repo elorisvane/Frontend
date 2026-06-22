@@ -9,12 +9,12 @@ export default function Wishlist() {
   const items: never[] = [];
 
   return (
-    <div className="min-h-screen bg-[#0d0d0d] text-white selection:bg-gold-300 selection:text-black">
-      <Header />
+    <div className="min-h-screen bg-white text-neutral-900 selection:bg-gold-200 selection:text-black">
+      <Header light />
 
       <section className="mx-auto max-w-[1400px] px-6 pb-24 pt-36 md:px-12 md:pt-44">
         <div className="text-center">
-          <p className="font-sans text-[10px] uppercase tracking-[0.5em] text-gold-200">
+          <p className="font-sans text-[10px] uppercase tracking-[0.5em] text-neutral-500">
             My Wishlist
           </p>
           <h1 className="mt-4 font-serif text-4xl font-light tracking-[0.15em] md:text-6xl">
@@ -25,7 +25,7 @@ export default function Wishlist() {
         {items.length === 0 ? (
           <div className="mx-auto mt-20 flex max-w-md flex-col items-center text-center">
             <svg
-              className="h-12 w-12 text-gold-200"
+              className="h-12 w-12 text-neutral-300"
               fill="none"
               stroke="currentColor"
               strokeWidth="0.8"
@@ -40,13 +40,13 @@ export default function Wishlist() {
             <p className="mt-8 font-serif text-2xl font-light tracking-[0.05em]">
               Your wishlist is empty
             </p>
-            <p className="mt-4 font-sans text-sm leading-loose tracking-[0.04em] text-white/60">
+            <p className="mt-4 font-sans text-sm leading-loose tracking-[0.04em] text-neutral-500">
               Save the pieces you love to revisit them at any time, or to share
               with a client advisor during a private appointment.
             </p>
             <Link
               href="/"
-              className="mt-10 inline-block border border-white/40 px-10 py-3 font-sans text-[11px] tracking-[0.3em] text-white transition-colors hover:border-gold-200 hover:text-gold-200"
+              className="mt-10 inline-block border border-neutral-900 px-10 py-3 font-sans text-[11px] tracking-[0.3em] text-neutral-900 transition-colors hover:bg-neutral-900 hover:text-white"
             >
               DISCOVER THE COLLECTIONS
             </Link>

@@ -16,10 +16,10 @@ export default function BlogPost({ slug }: BlogPostProps) {
   const related = posts.filter((p) => p.slug !== post.slug).slice(0, 3);
 
   return (
-    <div className="min-h-screen bg-[#0d0d0d] text-white selection:bg-gold-300 selection:text-black">
+    <div className="min-h-screen bg-white text-neutral-900 selection:bg-gold-200 selection:text-black">
       <Header transparent />
 
-      {/* --- HERO --- */}
+      {/* --- HERO (text sits over a dark image, so it stays light) --- */}
       <section className="relative flex h-[70vh] w-full items-end justify-center overflow-hidden">
         <Image
           src={post.image}
@@ -30,8 +30,8 @@ export default function BlogPost({ slug }: BlogPostProps) {
           className="object-cover object-center"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-black/40" />
-        <div className="relative z-10 max-w-3xl px-6 pb-16 text-center">
-          <span className="font-sans text-[10px] tracking-[0.4em] text-gold-200">
+        <div className="relative z-10 max-w-3xl px-6 pb-16 text-center text-white">
+          <span className="font-sans text-[10px] tracking-[0.4em] text-white/70">
             {post.category}
           </span>
           <h1 className="mt-5 font-serif text-4xl font-light leading-tight tracking-[0.05em] md:text-5xl">
@@ -45,24 +45,24 @@ export default function BlogPost({ slug }: BlogPostProps) {
 
       {/* --- ARTICLE BODY --- */}
       <article className="mx-auto max-w-2xl px-6 py-20">
-        <p className="font-serif text-2xl font-light leading-relaxed tracking-[0.03em] text-white/90">
+        <p className="font-serif text-2xl font-light leading-relaxed tracking-[0.03em] text-neutral-800">
           {post.excerpt}
         </p>
         <div className="mt-10 space-y-7">
           {post.body.map((para, i) => (
             <p
               key={i}
-              className="font-sans text-[15px] leading-loose tracking-[0.03em] text-white/70"
+              className="font-sans text-[15px] leading-loose tracking-[0.03em] text-neutral-600"
             >
               {para}
             </p>
           ))}
         </div>
 
-        <div className="mt-16 border-t border-white/10 pt-8 text-center">
+        <div className="mt-16 border-t border-neutral-200 pt-8 text-center">
           <Link
             href="/blog"
-            className="font-sans text-[11px] tracking-[0.3em] text-white/60 transition-colors hover:text-gold-200"
+            className="font-sans text-[11px] tracking-[0.3em] text-neutral-500 transition-colors hover:text-neutral-900"
           >
             &larr; BACK TO THE JOURNAL
           </Link>
@@ -70,9 +70,9 @@ export default function BlogPost({ slug }: BlogPostProps) {
       </article>
 
       {/* --- RELATED --- */}
-      <section className="border-t border-white/10 px-6 py-20 md:px-12">
+      <section className="border-t border-neutral-200 px-6 py-20 md:px-12">
         <div className="mx-auto max-w-[1400px]">
-          <h2 className="text-center font-sans text-xs font-medium tracking-[0.35em] text-white/80">
+          <h2 className="text-center font-sans text-xs font-medium tracking-[0.35em] text-neutral-700">
             CONTINUE READING
           </h2>
           <div className="mt-12 grid grid-cols-1 gap-x-10 gap-y-12 sm:grid-cols-3">
@@ -87,7 +87,7 @@ export default function BlogPost({ slug }: BlogPostProps) {
                     className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                   />
                 </div>
-                <span className="mt-4 block font-sans text-[10px] tracking-[0.35em] text-gold-200">
+                <span className="mt-4 block font-sans text-[10px] tracking-[0.35em] text-neutral-500">
                   {p.category}
                 </span>
                 <h3 className="mt-2 font-serif text-xl font-light leading-snug tracking-[0.04em]">

@@ -202,7 +202,7 @@ export default function Home() {
   }, [revealEnabled]);
 
   return (
-    <div className="min-h-screen bg-[#0d0d0d] text-white selection:bg-gold-300 selection:text-black">
+    <div className="min-h-screen bg-white text-neutral-900 selection:bg-gold-200 selection:text-black">
       <Header transparent />
 
       {/* --- FULL-SCREEN CAMPAIGN SECTIONS --- */}
@@ -250,7 +250,7 @@ export default function Home() {
         )}
 
         {/* --- BOTTOM GALLERY --- */}
-        <section className="grid grid-cols-1 gap-[2px] bg-[#0d0d0d] md:grid-cols-3 snap-start">
+        <section className="grid grid-cols-1 gap-[2px] bg-neutral-200 md:grid-cols-3 snap-start">
           {galleryImages.map((img) => (
             <div
               key={img.src}

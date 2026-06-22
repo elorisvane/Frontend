@@ -8,13 +8,13 @@ export default function Blog() {
   const [featured, ...rest] = posts;
 
   return (
-    <div className="min-h-screen bg-[#0d0d0d] text-white selection:bg-gold-300 selection:text-black">
-      <Header />
+    <div className="min-h-screen bg-white text-neutral-900 selection:bg-gold-200 selection:text-black">
+      <Header light />
 
       <section className="mx-auto max-w-[1600px] px-6 pb-24 pt-36 md:px-12 md:pt-44">
         {/* Title */}
         <div className="text-center">
-          <p className="font-sans text-[10px] uppercase tracking-[0.5em] text-gold-200">
+          <p className="font-sans text-[10px] uppercase tracking-[0.5em] text-neutral-500">
             Stories &amp; Insights
           </p>
           <h1 className="mt-4 font-serif text-4xl font-light tracking-[0.15em] md:text-6xl">
@@ -38,19 +38,19 @@ export default function Blog() {
             />
           </div>
           <div>
-            <span className="font-sans text-[10px] tracking-[0.35em] text-gold-200">
+            <span className="font-sans text-[10px] tracking-[0.35em] text-neutral-500">
               {featured.category}
             </span>
             <h2 className="mt-4 font-serif text-3xl font-light leading-snug tracking-[0.04em] md:text-4xl">
               {featured.title}
             </h2>
-            <p className="mt-5 font-sans text-sm leading-loose tracking-[0.04em] text-white/60">
+            <p className="mt-5 font-sans text-sm leading-loose tracking-[0.04em] text-neutral-500">
               {featured.excerpt}
             </p>
-            <p className="mt-6 font-sans text-[10px] tracking-[0.25em] text-white/40">
+            <p className="mt-6 font-sans text-[10px] tracking-[0.25em] text-neutral-400">
               {featured.date} &middot; {featured.readTime}
             </p>
-            <span className="mt-6 inline-block border-b border-white/40 pb-1 font-sans text-[11px] tracking-[0.3em] text-white transition-colors group-hover:border-gold-200 group-hover:text-gold-200">
+            <span className="mt-6 inline-block border-b border-neutral-300 pb-1 font-sans text-[11px] tracking-[0.3em] text-neutral-900 transition-colors group-hover:border-neutral-900 group-hover:text-neutral-500">
               READ ARTICLE
             </span>
           </div>
@@ -69,16 +69,16 @@ export default function Blog() {
                   className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                 />
               </div>
-              <span className="mt-5 block font-sans text-[10px] tracking-[0.35em] text-gold-200">
+              <span className="mt-5 block font-sans text-[10px] tracking-[0.35em] text-neutral-500">
                 {post.category}
               </span>
               <h3 className="mt-3 font-serif text-2xl font-light leading-snug tracking-[0.04em]">
                 {post.title}
               </h3>
-              <p className="mt-3 font-sans text-sm leading-relaxed tracking-[0.04em] text-white/55">
+              <p className="mt-3 font-sans text-sm leading-relaxed tracking-[0.04em] text-neutral-500">
                 {post.excerpt}
               </p>
-              <p className="mt-4 font-sans text-[10px] tracking-[0.25em] text-white/40">
+              <p className="mt-4 font-sans text-[10px] tracking-[0.25em] text-neutral-400">
                 {post.date} &middot; {post.readTime}
               </p>
             </Link>
