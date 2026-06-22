@@ -207,7 +207,7 @@ export default function Header({
 
       {/* --- FULL-SCREEN MENU --- */}
       <div
-        className={`fixed inset-0 z-[60] flex flex-col justify-between bg-black/95 p-8 backdrop-blur-lg transition-all duration-500 ease-in-out ${
+        className={`fixed inset-0 z-[60] flex flex-col justify-between bg-black p-8 text-white backdrop-blur-lg transition-all duration-500 ease-in-out ${
           mobileMenuOpen
             ? "translate-y-0 opacity-100"
             : "pointer-events-none -translate-y-full opacity-0"
@@ -271,7 +271,7 @@ export default function Header({
 
       {/* --- SEARCH OVERLAY --- */}
       <div
-        className={`fixed inset-0 z-[70] flex flex-col bg-black/95 backdrop-blur-lg transition-all duration-500 ease-in-out ${
+        className={`fixed inset-0 z-[70] flex flex-col bg-black text-white backdrop-blur-lg transition-all duration-500 ease-in-out ${
           searchOpen
             ? "translate-y-0 opacity-100"
             : "pointer-events-none -translate-y-full opacity-0"

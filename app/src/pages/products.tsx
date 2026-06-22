@@ -162,7 +162,7 @@ export default function Products() {
       <Header light />
 
       {/* --- HERO CAMPAIGN BANNER --- */}
-      <div className="relative mt-[53px] h-[300px] w-full overflow-hidden bg-neutral-100 md:h-[420px]">
+      <div className="relative mt-[53px] h-[300px] w-full overflow-hidden bg-neutral-100 md:h-[522px]">
         <Image
           src="/assets/1 (1).png"
           alt="Eloris Creations"
@@ -177,7 +177,7 @@ export default function Products() {
         {/* --- TOP CONTROL BAR --- */}
         <div className="flex items-end justify-between border-b border-neutral-200 pb-5 md:gap-10">
           {/* Breadcrumb (aligns above the sidebar on desktop) */}
-          <nav className="hidden w-[240px] shrink-0 text-[10px] uppercase tracking-[0.2em] text-neutral-400 md:block">
+          <nav className="hidden min-w-[240px] shrink-0 whitespace-nowrap text-[10px] tracking-[0.2em] text-neutral-400 md:block">
             <span className="cursor-pointer hover:text-neutral-900">Home</span>
             <span className="mx-2">|</span>
             <span className="cursor-pointer hover:text-neutral-900">
@@ -215,7 +215,11 @@ export default function Products() {
                   aria-pressed={viewMode === "grid"}
                 >
                   GRID
-                  <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
+                  <svg
+                    className="h-4 w-4"
+                    fill="currentColor"
+                    viewBox="0 0 24 24"
+                  >
                     <path d="M4 4h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4zM4 10h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4zM4 16h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4z" />
                   </svg>
                 </button>

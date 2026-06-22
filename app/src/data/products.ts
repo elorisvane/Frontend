@@ -134,5 +134,11 @@ export const products: Product[] = [
 ];
 
 export function getProduct(slug: string): Product | undefined {
-  return products.find((p) => p.slug === slug);
+  const exact = products.find((p) => p.slug === slug);
+  if (exact) return exact;
+  // The listing page mocks an expanded catalogue by appending a numeric variant
+  // suffix (e.g. "-2", "-3") to real slugs. Resolve those back to the base
+  // product so variant cards never land on a 404.
+  const base = slug.replace(/-\d+$/, "");
+  return products.find((p) => p.slug === base);
 }
