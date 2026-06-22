@@ -17,9 +17,14 @@ interface HeaderProps {
   /** When true the header starts transparent over a hero and darkens on scroll.
    *  When false (default for inner pages) it stays solid for legibility. */
   transparent?: boolean;
+  /** When true the header uses a light background and dark text. */
+  light?: boolean;
 }
 
-export default function Header({ transparent = false }: HeaderProps) {
+export default function Header({
+  transparent = false,
+  light = false,
+}: HeaderProps) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -52,7 +57,7 @@ export default function Header({ transparent = false }: HeaderProps) {
             (p) =>
               p.name.toLowerCase().includes(q) ||
               p.category.toLowerCase().includes(q) ||
-              p.tagline.toLowerCase().includes(q)
+              p.tagline.toLowerCase().includes(q),
           )
           .map((p) => ({
             href: `/products/${p.slug}`,
@@ -64,7 +69,7 @@ export default function Header({ transparent = false }: HeaderProps) {
             (p) =>
               p.title.toLowerCase().includes(q) ||
               p.category.toLowerCase().includes(q) ||
-              p.excerpt.toLowerCase().includes(q)
+              p.excerpt.toLowerCase().includes(q),
           )
           .map((p) => ({
             href: `/blog/${p.slug}`,
@@ -83,9 +88,11 @@ export default function Header({ transparent = false }: HeaderProps) {
     <>
       <header
         className={`fixed inset-x-0 top-0 z-50 transition-all duration-500 ease-in-out ${
-          solid
-            ? "bg-black/70 py-4 backdrop-blur-md"
-            : "bg-gradient-to-b from-black/30 to-transparent py-6"
+          light
+            ? "bg-white/95 text-neutral-900 border-b border-neutral-100 py-4 shadow-xs"
+            : solid
+              ? "bg-black/70 text-white py-4 backdrop-blur-md"
+              : "bg-gradient-to-b from-black/30 to-transparent text-white py-6"
         }`}
       >
         <div className="mx-auto flex max-w-[1600px] items-center justify-between px-6 md:px-12">
@@ -95,9 +102,15 @@ export default function Header({ transparent = false }: HeaderProps) {
             aria-label="Open menu"
             className="group flex h-4 w-6 flex-col justify-between focus:outline-none"
           >
-            <span className="h-[1px] w-full bg-white transition-all duration-300 group-hover:bg-gold-200" />
-            <span className="h-[1px] w-full bg-white transition-all duration-300 group-hover:bg-gold-200" />
-            <span className="h-[1px] w-full bg-white transition-all duration-300 group-hover:bg-gold-200" />
+            <span
+              className={`h-[1px] w-full transition-all duration-300 ${light ? "bg-neutral-900 group-hover:bg-gold-500" : "bg-white group-hover:bg-gold-200"}`}
+            />
+            <span
+              className={`h-[1px] w-full transition-all duration-300 ${light ? "bg-neutral-900 group-hover:bg-gold-500" : "bg-white group-hover:bg-gold-200"}`}
+            />
+            <span
+              className={`h-[1px] w-full transition-all duration-300 ${light ? "bg-neutral-900 group-hover:bg-gold-500" : "bg-white group-hover:bg-gold-200"}`}
+            />
           </button>
 
           {/* Wordmark (center) */}
@@ -106,7 +119,9 @@ export default function Header({ transparent = false }: HeaderProps) {
             aria-label="Eloris home"
             className="absolute left-1/2 flex -translate-x-1/2 flex-col items-center transition-opacity duration-300 hover:opacity-80"
           >
-            <span className="font-serif text-2xl font-light tracking-[0.45em] text-white md:text-[28px]">
+            <span
+              className={`font-serif text-2xl font-light tracking-[0.45em] md:text-[28px] ${light ? "text-neutral-900" : "text-white"}`}
+            >
               ÉLORIS
             </span>
             {/* <span className="mt-1 font-sans text-[9px] tracking-[0.5em] text-white/70">
@@ -115,11 +130,13 @@ export default function Header({ transparent = false }: HeaderProps) {
           </Link>
 
           {/* Icons (right) */}
-          <div className="flex items-center gap-5 text-white md:gap-7">
+          <div
+            className={`flex items-center gap-5 md:gap-7 ${light ? "text-neutral-900" : "text-white"}`}
+          >
             <button
               onClick={() => setSearchOpen(true)}
               aria-label="Search"
-              className="transition-colors hover:text-gold-200"
+              className={`transition-colors ${light ? "hover:text-gold-500" : "hover:text-gold-200"}`}
             >
               <svg
                 className="h-5 w-5"
@@ -135,7 +152,7 @@ export default function Header({ transparent = false }: HeaderProps) {
             <Link
               href="/account"
               aria-label="Account"
-              className="hidden transition-colors hover:text-gold-200 sm:block"
+              className={`hidden transition-colors sm:block ${light ? "hover:text-gold-500" : "hover:text-gold-200"}`}
             >
               <svg
                 className="h-5 w-5"
@@ -151,7 +168,7 @@ export default function Header({ transparent = false }: HeaderProps) {
             <Link
               href="/wishlist"
               aria-label="Wishlist"
-              className="hidden transition-colors hover:text-gold-200 sm:block"
+              className={`hidden transition-colors sm:block ${light ? "hover:text-gold-500" : "hover:text-gold-200"}`}
             >
               <svg
                 className="h-5 w-5"
@@ -170,7 +187,7 @@ export default function Header({ transparent = false }: HeaderProps) {
             <Link
               href="/bag"
               aria-label="Bag"
-              className="transition-colors hover:text-gold-200"
+              className={`transition-colors ${light ? "hover:text-gold-500" : "hover:text-gold-200"}`}
             >
               <svg
                 className="h-5 w-5"
