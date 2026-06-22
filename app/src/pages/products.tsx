@@ -38,8 +38,8 @@ export default function Products() {
   const [selectedCollections, setSelectedCollections] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState<string>("recommended");
   const [availableOnline, setAvailableOnline] = useState<boolean>(false);
-  const [currency, setCurrency] = useState<string>("CAD");
   const [mobileFilterOpen, setMobileFilterOpen] = useState<boolean>(false);
+  const [viewMode, setViewMode] = useState<"grid" | "feed">("grid");
 
   // Accordion open/close states
   const [categoryOpen, setCategoryOpen] = useState<boolean>(true);
@@ -174,26 +174,95 @@ export default function Products() {
 
       {/* --- MAIN PAGE SECTION --- */}
       <main className="mx-auto max-w-[1600px] px-6 py-12 md:px-12 md:py-20">
-        <div className="flex flex-col gap-10 md:flex-row">
+        {/* --- TOP CONTROL BAR --- */}
+        <div className="flex items-end justify-between border-b border-neutral-200 pb-5 md:gap-10">
+          {/* Breadcrumb (aligns above the sidebar on desktop) */}
+          <nav className="hidden w-[240px] shrink-0 text-[10px] uppercase tracking-[0.2em] text-neutral-400 md:block">
+            <span className="cursor-pointer hover:text-neutral-900">Home</span>
+            <span className="mx-2">|</span>
+            <span className="cursor-pointer hover:text-neutral-900">
+              High Jewelry
+            </span>
+            <span className="mx-2">|</span>
+            <span className="font-medium text-neutral-900">All creations</span>
+          </nav>
+
+          {/* Count + view controls (aligns above the grid on desktop) */}
+          <div className="flex flex-1 items-center justify-between">
+            <span className="font-sans text-[11px] font-medium uppercase tracking-[0.2em] text-neutral-400">
+              {filteredProducts.length}{" "}
+              {filteredProducts.length === 1 ? "Model" : "Models"}
+            </span>
+
+            {/* Mobile filter button */}
+            <button
+              onClick={() => setMobileFilterOpen(true)}
+              className="flex items-center gap-2 border border-neutral-200 px-4 py-2 font-sans text-[10px] font-semibold tracking-[0.15em] text-neutral-700 hover:bg-neutral-50 md:hidden"
+            >
+              FILTER & SORT
+            </button>
+
+            <div className="hidden items-center gap-8 md:flex">
+              {/* GRID / FEED view toggle */}
+              <div className="flex items-center gap-5 font-sans text-[10px] font-semibold uppercase tracking-[0.2em]">
+                <button
+                  onClick={() => setViewMode("grid")}
+                  className={`flex items-center gap-2 transition-colors ${
+                    viewMode === "grid"
+                      ? "text-neutral-900"
+                      : "text-neutral-400 hover:text-neutral-700"
+                  }`}
+                  aria-pressed={viewMode === "grid"}
+                >
+                  GRID
+                  <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M4 4h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4zM4 10h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4zM4 16h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4z" />
+                  </svg>
+                </button>
+                <button
+                  onClick={() => setViewMode("feed")}
+                  className={`flex items-center gap-2 transition-colors ${
+                    viewMode === "feed"
+                      ? "text-neutral-900"
+                      : "text-neutral-400 hover:text-neutral-700"
+                  }`}
+                  aria-pressed={viewMode === "feed"}
+                >
+                  FEED
+                  <span
+                    className={`flex h-3.5 w-3.5 items-center justify-center border transition-colors ${
+                      viewMode === "feed"
+                        ? "border-neutral-900 bg-neutral-900 text-white"
+                        : "border-neutral-400"
+                    }`}
+                  >
+                    {viewMode === "feed" && (
+                      <svg
+                        className="h-2.5 w-2.5"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2.5"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="m5 13 4 4 10-10"
+                        />
+                      </svg>
+                    )}
+                  </span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-10 flex flex-col gap-10 md:flex-row">
           {/* --- SIDEBAR FILTERS (DESKTOP) --- */}
           <aside className="hidden w-[240px] shrink-0 md:block">
-            {/* Breadcrumb */}
-            <nav className="text-[10px] tracking-[0.2em] text-neutral-400 uppercase">
-              <span className="hover:text-neutral-900 cursor-pointer">
-                Home
-              </span>
-              <span className="mx-2">|</span>
-              <span className="hover:text-neutral-900 cursor-pointer">
-                High Jewelry
-              </span>
-              <span className="mx-2">|</span>
-              <span className="text-neutral-900 font-medium">
-                All creations
-              </span>
-            </nav>
-
             {/* Sort options */}
-            <div className="mt-8 border-b border-neutral-100 pb-6">
+            <div className="border-b border-neutral-100 pb-6">
               <h3 className="font-sans text-[11px] font-bold uppercase tracking-[0.25em] text-neutral-800">
                 SHORT BY
               </h3>
@@ -367,51 +436,6 @@ export default function Products() {
 
           {/* --- MAIN PRODUCT CATALOG --- */}
           <div className="flex-1">
-            {/* Catalog Control Header */}
-            <div className="flex items-center justify-between border-b border-neutral-100 pb-5">
-              <span className="font-sans text-[11px] font-medium uppercase tracking-[0.2em] text-neutral-400">
-                {filteredProducts.length}{" "}
-                {filteredProducts.length === 1 ? "Model" : "Models"}
-              </span>
-
-              {/* Mobile Filter Button */}
-              <button
-                onClick={() => setMobileFilterOpen(true)}
-                className="flex items-center gap-2 border border-neutral-200 px-4 py-2 font-sans text-[10px] font-semibold tracking-[0.15em] text-neutral-700 hover:bg-neutral-50 md:hidden"
-              >
-                FILTER & SORT
-              </button>
-
-              <div className="hidden items-center gap-6 md:flex">
-                {/* Currency selector */}
-                <div className="flex items-center gap-2 font-sans text-xs tracking-wider text-neutral-600">
-                  <span>CURRENCY:</span>
-                  <select
-                    value={currency}
-                    onChange={(e) => setCurrency(e.target.value)}
-                    className="border-none bg-transparent font-semibold text-neutral-800 focus:outline-none cursor-pointer"
-                  >
-                    <option value="CAD">CAD</option>
-                    <option value="USD">USD</option>
-                    <option value="EUR">EUR</option>
-                  </select>
-                </div>
-
-                {/* Grid layout indicators */}
-                <div className="flex gap-2 text-neutral-300">
-                  <button className="text-neutral-800" aria-label="Grid View">
-                    <svg
-                      className="h-4 w-4"
-                      fill="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path d="M4 4h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4zM4 10h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4zM4 16h4v4H4zm6 0h4v4h-4zm6 0h4v4h-4z" />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-            </div>
-
             {/* Empty state */}
             {filteredProducts.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-20 text-center">
@@ -427,14 +451,22 @@ export default function Products() {
               </div>
             ) : (
               /* Asymmetric Grid */
-              <div className="mt-8 grid grid-cols-1 gap-x-6 gap-y-12 sm:grid-cols-2 lg:grid-cols-4 auto-rows-fr">
+              <div
+                className={`grid auto-rows-fr grid-cols-1 gap-x-6 gap-y-12 sm:grid-cols-2 ${
+                  viewMode === "feed" ? "lg:grid-cols-2" : "lg:grid-cols-4"
+                }`}
+              >
                 {gridItems.map((item: any, index) => {
                   // Rendering the custom Asymmetric Grid Lifestyle Banner Card
                   if (item.isBanner) {
                     return (
                       <div
                         key={item.id}
-                        className="relative col-span-1 sm:col-span-2 lg:col-start-3 lg:col-span-2 row-span-1 sm:row-span-2 overflow-hidden bg-neutral-100 group min-h-[360px] flex flex-col justify-end"
+                        className={`group relative col-span-1 flex min-h-[360px] flex-col justify-end overflow-hidden bg-neutral-100 sm:col-span-2 ${
+                          viewMode === "feed"
+                            ? "lg:col-span-2"
+                            : "sm:row-span-2 lg:col-start-3 lg:col-span-2"
+                        }`}
                       >
                         <Image
                           src="/assets/1 (1).png"
@@ -464,11 +496,11 @@ export default function Products() {
                     <Link
                       key={item.id}
                       href={`/products/${item.slug}`}
-                      className="group flex flex-col h-full justify-between"
+                      className="group flex h-full flex-col justify-between text-center"
                     >
                       <div>
                         {/* Aspect block for standard square/rectangular card */}
-                        <div className="relative aspect-[4/5] overflow-hidden bg-neutral-50 border border-neutral-100/50">
+                        <div className="relative aspect-[4/5] overflow-hidden bg-neutral-50">
                           <Image
                             src={item.image}
                             alt={item.name}
@@ -477,23 +509,15 @@ export default function Products() {
                             className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                           />
                         </div>
-                        <span className="mt-5 block font-sans text-[9px] font-semibold tracking-[0.3em] text-gold-500 uppercase">
-                          {item.category}
-                        </span>
-                        <h2 className="mt-2.5 font-serif text-lg font-light leading-snug tracking-wide text-neutral-800 group-hover:text-gold-500 transition-colors">
+                        <h2 className="mt-5 font-serif text-base font-light leading-snug tracking-wide text-neutral-800 transition-colors group-hover:text-neutral-500">
                           {item.name}
                         </h2>
-                        <p className="mt-2 font-sans text-xs leading-relaxed text-neutral-400">
+                        <p className="mt-2 font-sans text-[11px] leading-relaxed text-neutral-400">
                           {item.tagline}
                         </p>
                       </div>
-                      <p className="mt-4 font-sans text-xs font-semibold tracking-wider text-neutral-700">
-                        {currency === "CAD"
-                          ? item.price
-                          : `$${Math.round(parseFloat(item.price.replace(/[^0-9.]/g, "")) * 0.72).toLocaleString()}`}{" "}
-                        <span className="text-[10px] font-normal text-neutral-400">
-                          {currency}
-                        </span>
+                      <p className="mt-3 font-sans text-xs font-medium tracking-wider text-neutral-700">
+                        {item.price}
                       </p>
                     </Link>
                   );

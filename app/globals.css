@@ -16,13 +16,16 @@
   --font-serif: var(--font-serif);
   --font-sans: var(--font-sans);
   
-  /* Luxury gold accents */
-  --color-gold-50: #fbfaf7;
-  --color-gold-100: #f5eedb;
-  --color-gold-200: #e3d2ad;
-  --color-gold-300: #cfb37c;
-  --color-gold-400: #bd9753;
-  --color-gold-500: #aa7c3d;
+  /* Neutral accent scale.
+     Formerly a gold palette — remapped to a monochrome greyscale so the whole
+     site reads black & white. The `gold-*` names are kept so existing utility
+     classes keep resolving; the values are now neutral (light -> dark). */
+  --color-gold-50: #fafafa;
+  --color-gold-100: #f5f5f5;
+  --color-gold-200: #d4d4d4;
+  --color-gold-300: #a3a3a3;
+  --color-gold-400: #525252;
+  --color-gold-500: #171717;
   
   --animate-fade-in-up: fade-in-up 1s ease-out forwards;
 }
@@ -78,7 +81,7 @@ body {
   background: var(--background);
 }
 ::-webkit-scrollbar-thumb {
-  background: #bd9753;
+  background: #525252;
   border-radius: 3px;
 }
 

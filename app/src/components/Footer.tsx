@@ -2,7 +2,7 @@ import Link from "next/link";
 
 const columns = [
   {
-    title: "MAISON",
+    title: "THE MAISON",
     links: [
       { href: "/about", label: "Our Story" },
       { href: "/about", label: "Craftsmanship" },
@@ -16,7 +16,7 @@ const columns = [
       { href: "/contact", label: "Contact Us" },
       { href: "/contact", label: "Book an Appointment" },
       { href: "/contact", label: "Shipping & Returns" },
-      { href: "/contact", label: "Product Care" },
+      { href: "/account", label: "My Account" },
     ],
   },
   {
@@ -30,19 +30,77 @@ const columns = [
   },
 ];
 
+const socials = [
+  {
+    label: "Instagram",
+    href: "#",
+    icon: (
+      <>
+        <rect x="3" y="3" width="18" height="18" rx="5" />
+        <circle cx="12" cy="12" r="4" />
+        <circle cx="17.5" cy="6.5" r="0.6" fill="currentColor" stroke="none" />
+      </>
+    ),
+  },
+  {
+    label: "YouTube",
+    href: "#",
+    icon: (
+      <>
+        <rect x="2.5" y="6" width="19" height="12" rx="3.5" />
+        <path d="M10.5 9.2v5.6l4.8-2.8-4.8-2.8Z" fill="currentColor" stroke="none" />
+      </>
+    ),
+  },
+  {
+    label: "Pinterest",
+    href: "#",
+    icon: (
+      <>
+        <circle cx="12" cy="12" r="9" />
+        <path
+          strokeLinecap="round"
+          d="M9.5 20c.6-2 .4-2.6 1.4-6.6.3-1.2-.3-2.3-.3-2.9 0-1.4.8-2.4 1.9-2.4.9 0 1.4.7 1.4 1.6 0 1-.6 2.4-1 3.7-.3 1.1.5 2 1.6 2 1.9 0 3.2-2.5 3.2-5.3 0-2.2-1.5-3.9-4.2-3.9-3 0-4.9 2.3-4.9 4.8 0 .9.3 1.5.7 2 .2.2.2.3.1.6l-.2.9"
+        />
+      </>
+    ),
+  },
+];
+
 export default function Footer() {
   return (
     <footer className="border-t border-white/10 bg-black px-6 pb-10 pt-16 text-white md:px-12">
       <div className="mx-auto max-w-[1600px]">
-        <div className="grid grid-cols-1 gap-12 md:grid-cols-4">
-          {/* Newsletter / brand */}
-          <div className="md:col-span-1">
-            <span className="font-serif text-xl font-light tracking-[0.4em]">
-              ÉLORIS
-            </span>
-            <p className="mt-4 max-w-xs font-sans text-[11px] leading-relaxed tracking-[0.15em] text-white/50">
-              Sign up to receive news of our latest collections, events and
-              exclusive private viewings.
+        <div className="grid grid-cols-2 gap-x-8 gap-y-12 md:grid-cols-4 md:gap-12">
+          {/* Link columns */}
+          {columns.map((col) => (
+            <div key={col.title}>
+              <h3 className="font-sans text-[11px] font-medium tracking-[0.3em] text-white/80">
+                {col.title}
+              </h3>
+              <ul className="mt-5 space-y-3">
+                {col.links.map((link, i) => (
+                  <li key={`${link.label}-${i}`}>
+                    <Link
+                      href={link.href}
+                      className="font-sans text-xs tracking-[0.1em] text-white/50 transition-colors hover:text-white"
+                    >
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+
+          {/* News / newsletter */}
+          <div>
+            <h3 className="font-sans text-[11px] font-medium tracking-[0.3em] text-white/80">
+              NEWS
+            </h3>
+            <p className="mt-5 max-w-xs font-sans text-xs leading-relaxed tracking-[0.1em] text-white/50">
+              Subscribe to the newsletter for news of our latest collections,
+              events and private viewings.
             </p>
             <form className="mt-5 flex items-center border-b border-white/30 pb-2">
               <input
@@ -54,7 +112,7 @@ export default function Footer() {
               <button
                 type="submit"
                 aria-label="Subscribe"
-                className="ml-3 text-white/70 transition-colors hover:text-gold-200"
+                className="ml-3 text-white/70 transition-colors hover:text-white"
               >
                 <svg
                   className="h-4 w-4"
@@ -71,48 +129,35 @@ export default function Footer() {
                 </svg>
               </button>
             </form>
-          </div>
 
-          {/* Link columns */}
-          {columns.map((col) => (
-            <div key={col.title}>
-              <h3 className="font-sans text-[11px] font-medium tracking-[0.3em] text-white/80">
-                {col.title}
-              </h3>
-              <ul className="mt-5 space-y-3">
-                {col.links.map((link, i) => (
-                  <li key={`${link.label}-${i}`}>
-                    <Link
-                      href={link.href}
-                      className="font-sans text-xs tracking-[0.1em] text-white/50 transition-colors hover:text-gold-200"
-                    >
-                      {link.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
+            {/* Social icons */}
+            <div className="mt-6 flex items-center gap-5">
+              {socials.map((s) => (
+                <Link
+                  key={s.label}
+                  href={s.href}
+                  aria-label={s.label}
+                  className="text-white/50 transition-colors hover:text-white"
+                >
+                  <svg
+                    className="h-[18px] w-[18px]"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.3"
+                    viewBox="0 0 24 24"
+                  >
+                    {s.icon}
+                  </svg>
+                </Link>
+              ))}
             </div>
-          ))}
+          </div>
         </div>
 
-        <div className="mt-14 flex flex-col items-center gap-4 border-t border-white/10 pt-8 md:flex-row md:justify-between">
-          <p className="font-sans text-[10px] tracking-[0.2em] text-white/40">
-            &copy; {new Date().getFullYear()} ÉLORIS USA. ALL RIGHTS RESERVED.
+        <div className="mt-14 border-t border-white/10 pt-8 text-center">
+          <p className="font-sans text-[10px] tracking-[0.25em] text-white/40">
+            ÉLORIS, Inc. {new Date().getFullYear()}
           </p>
-          <div className="flex gap-6 font-sans text-[10px] tracking-[0.2em] text-white/40">
-            <Link
-              href="/privacy-policy"
-              className="transition-colors hover:text-white"
-            >
-              Privacy Policy
-            </Link>
-            <Link
-              href="/terms-of-service"
-              className="transition-colors hover:text-white"
-            >
-              Terms of Service
-            </Link>
-          </div>
         </div>
       </div>
     </footer>
