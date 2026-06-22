@@ -47,7 +47,7 @@ export default function Bag() {
               purchase.
             </p>
             <Link
-              href="/"
+              href="/products"
               className="mt-10 inline-block border border-neutral-900 px-10 py-3 font-sans text-[11px] tracking-[0.3em] text-neutral-900 transition-colors hover:bg-neutral-900 hover:text-white"
             >
               CONTINUE SHOPPING
