@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { posts } from "../data/posts";
 import { products } from "../data/products";
@@ -100,16 +101,16 @@ export default function Header({
           <button
             onClick={() => setMobileMenuOpen(true)}
             aria-label="Open menu"
-            className="group flex h-4 w-6 flex-col justify-between focus:outline-none"
+            className="transition-opacity hover:opacity-70 focus:outline-none"
           >
-            <span
-              className={`h-[1px] w-full transition-all duration-300 ${light ? "bg-neutral-900 group-hover:bg-gold-500" : "bg-white group-hover:bg-gold-200"}`}
-            />
-            <span
-              className={`h-[1px] w-full transition-all duration-300 ${light ? "bg-neutral-900 group-hover:bg-gold-500" : "bg-white group-hover:bg-gold-200"}`}
-            />
-            <span
-              className={`h-[1px] w-full transition-all duration-300 ${light ? "bg-neutral-900 group-hover:bg-gold-500" : "bg-white group-hover:bg-gold-200"}`}
+            <Image
+              src="/logo/menu-hamburger.svg"
+              alt=""
+              width={30}
+              height={30}
+              // Icon art is solid black; invert it to white over the dark/transparent header.
+              className={`h-6 w-6 ${light ? "" : "invert"}`}
+              aria-hidden
             />
           </button>
 
@@ -119,11 +120,15 @@ export default function Header({
             aria-label="Eloris home"
             className="absolute left-1/2 flex -translate-x-1/2 flex-col items-center transition-opacity duration-300 hover:opacity-80"
           >
-            <span
-              className={`font-serif text-2xl font-light tracking-[0.45em] md:text-[28px] ${light ? "text-neutral-900" : "text-white"}`}
-            >
-              ÉLORIS
-            </span>
+            <Image
+              src="/logo/logo.svg"
+              alt="ÉLORIS"
+              width={158}
+              height={47}
+              priority
+              // Logo art is solid black; invert it to white over the dark/transparent header.
+              className={`h-20 w-auto md:h-8 ${light ? "" : "invert"}`}
+            />
           </Link>
 
           {/* Icons (right) */}
