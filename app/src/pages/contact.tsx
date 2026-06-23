@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
+import { sendContactMessage } from "../data/contact";
 
 const boutiques = [
   { city: "NEW YORK", address: "744 Fifth Avenue, NY 10019", phone: "+1 212 555 0100" },
@@ -15,11 +16,34 @@ const inputClass =
 
 export default function Contact() {
   const [submitted, setSubmitted] = useState(false);
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    // Placeholder — wire up to a real endpoint / form service here.
-    setSubmitted(true);
+    if (pending) return;
+    setError(null);
+    setPending(true);
+
+    const data = new FormData(e.currentTarget);
+    try {
+      await sendContactMessage({
+        firstName: String(data.get("firstName") ?? ""),
+        lastName: String(data.get("lastName") ?? ""),
+        email: String(data.get("email") ?? ""),
+        phone: String(data.get("phone") ?? ""),
+        message: String(data.get("message") ?? ""),
+      });
+      setSubmitted(true);
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Your message could not be sent. Please try again.",
+      );
+    } finally {
+      setPending(false);
+    }
   }
 
   return (
@@ -54,22 +78,53 @@ export default function Contact() {
             ) : (
               <form onSubmit={handleSubmit} className="mt-8 space-y-7">
                 <div className="grid grid-cols-1 gap-7 sm:grid-cols-2">
-                  <input required type="text" placeholder="First name" className={inputClass} />
-                  <input required type="text" placeholder="Last name" className={inputClass} />
+                  <input
+                    required
+                    name="firstName"
+                    type="text"
+                    placeholder="First name"
+                    className={inputClass}
+                  />
+                  <input
+                    required
+                    name="lastName"
+                    type="text"
+                    placeholder="Last name"
+                    className={inputClass}
+                  />
                 </div>
-                <input required type="email" placeholder="Email address" className={inputClass} />
-                <input type="tel" placeholder="Phone (optional)" className={inputClass} />
+                <input
+                  required
+                  name="email"
+                  type="email"
+                  placeholder="Email address"
+                  className={inputClass}
+                />
+                <input
+                  name="phone"
+                  type="tel"
+                  placeholder="Phone (optional)"
+                  className={inputClass}
+                />
                 <textarea
                   required
+                  name="message"
                   rows={4}
+                  maxLength={5000}
                   placeholder="How may we help you?"
                   className={`${inputClass} resize-none`}
                 />
+                {error && (
+                  <p className="font-sans text-[12px] tracking-[0.08em] text-red-600">
+                    {error}
+                  </p>
+                )}
                 <button
                   type="submit"
-                  className="border border-neutral-900 px-10 py-3 font-sans text-[11px] tracking-[0.3em] text-neutral-900 transition-colors hover:bg-neutral-900 hover:text-white"
+                  disabled={pending}
+                  className="border border-neutral-900 px-10 py-3 font-sans text-[11px] tracking-[0.3em] text-neutral-900 transition-colors hover:bg-neutral-900 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  SUBMIT
+                  {pending ? "SENDING…" : "SUBMIT"}
                 </button>
               </form>
             )}

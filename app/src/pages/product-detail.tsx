@@ -6,6 +6,7 @@ import Link from "next/link";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import type { Product } from "../data/products";
+import { useCart } from "../lib/cart";
 
 interface ProductDetailProps {
   product: Product;
@@ -13,11 +14,18 @@ interface ProductDetailProps {
 }
 
 export default function ProductDetail({ product, related }: ProductDetailProps) {
-  const [material, setMaterial] = useState(product.materials[0]);
+  const { add } = useCart();
+  const [material, setMaterial] = useState(product.materials[0] ?? "");
   const [added, setAdded] = useState(false);
 
   function handleAddToBag() {
-    // Placeholder — wire up to a cart store / API to persist the selection.
+    add({
+      slug: product.slug,
+      name: product.name,
+      image: product.image,
+      price: product.price,
+      material,
+    });
     setAdded(true);
   }
 

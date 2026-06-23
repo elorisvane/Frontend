@@ -8,6 +8,7 @@ import Link from "next/link";
 // mirrors this list, so results stay in sync.
 import { fallbackPosts as posts } from "../data/posts";
 import { fallbackProducts as products } from "../data/products";
+import { useCart } from "../lib/cart";
 
 const navLinks = [
   { href: "/", label: "HOME" },
@@ -29,10 +30,16 @@ export default function Header({
   transparent = false,
   light = false,
 }: HeaderProps) {
+  const { count } = useCart();
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState("");
+  // The bag count comes from localStorage, which isn't available during SSR.
+  // Render the badge only after mount so the server/client markup matches.
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => setMounted(true), []);
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 40);
@@ -191,8 +198,8 @@ export default function Header({
             </Link>
             <Link
               href="/bag"
-              aria-label="Bag"
-              className={`transition-colors ${light ? "hover:text-gold-500" : "hover:text-gold-200"}`}
+              aria-label={`Bag${mounted && count > 0 ? ` (${count})` : ""}`}
+              className={`relative transition-colors ${light ? "hover:text-gold-500" : "hover:text-gold-200"}`}
             >
               <svg
                 className="h-5 w-5"
@@ -208,6 +215,11 @@ export default function Header({
                 />
                 <path strokeLinecap="round" d="M9 8a3 3 0 0 1 6 0" />
               </svg>
+              {mounted && count > 0 && (
+                <span className="absolute -right-2 -top-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-gold-500 px-1 font-sans text-[9px] font-medium leading-none text-white">
+                  {count}
+                </span>
+              )}
             </Link>
           </div>
         </div>
