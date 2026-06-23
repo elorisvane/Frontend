@@ -1,3 +1,5 @@
+import { getSupabase } from "../lib/supabase";
+
 export interface Post {
   slug: string;
   title: string;
@@ -10,7 +12,9 @@ export interface Post {
   body: string[];
 }
 
-export const posts: Post[] = [
+/** Bundled sample journal — the fallback when Supabase is unavailable, and a
+ *  lightweight static index for the client-side header search. */
+export const fallbackPosts: Post[] = [
   {
     slug: "the-art-of-high-jewellery",
     title: "The Art of High Jewellery",
@@ -73,6 +77,51 @@ export const posts: Post[] = [
   },
 ];
 
-export function getPost(slug: string): Post | undefined {
-  return posts.find((p) => p.slug === slug);
+interface PostRow {
+  slug: string;
+  title: string;
+  excerpt: string;
+  category: string;
+  date: string;
+  read_time: string;
+  image: string;
+  body: string[] | null;
+}
+
+function mapPost(row: PostRow): Post {
+  return {
+    slug: row.slug,
+    title: row.title,
+    excerpt: row.excerpt,
+    category: row.category,
+    date: row.date,
+    readTime: row.read_time,
+    image: row.image,
+    body: row.body ?? [],
+  };
+}
+
+/**
+ * All journal posts, read from Supabase ordered by the admin's sort order. Falls
+ * back to the bundled sample journal when Supabase is not configured, errors, or
+ * is empty.
+ */
+export async function getPosts(): Promise<Post[]> {
+  const supabase = getSupabase();
+  if (!supabase) return fallbackPosts;
+  try {
+    const { data, error } = await supabase
+      .from("posts")
+      .select("*")
+      .order("sort_order", { ascending: true });
+    if (error || !data || data.length === 0) return fallbackPosts;
+    return (data as PostRow[]).map(mapPost);
+  } catch {
+    return fallbackPosts;
+  }
+}
+
+export async function getPost(slug: string): Promise<Post | undefined> {
+  const all = await getPosts();
+  return all.find((p) => p.slug === slug);
 }

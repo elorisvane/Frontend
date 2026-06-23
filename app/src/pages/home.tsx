@@ -5,59 +5,68 @@ import Image from "next/image";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import StoreAdvantages from "../components/StoreAdvantages";
+import type { CampaignSection, GalleryItem, MediaType } from "../data/home";
 
-interface Section {
-  id: string;
-  title: string;
-  subtitle: string;
-  image: string;
+/** Remote URLs need a `remotePatterns` allow-list to pass through next/image, so
+ *  render those with a plain <img>; local /public paths get next/image. */
+function isRemote(src: string) {
+  return /^https?:\/\//i.test(src);
 }
 
-const sections: Section[] = [
-  {
-    id: "cast",
-    title: "A CUTTING-EDGE CAST",
-    subtitle: "DISCOVER THE COUNTRYSIDE",
-    image: "/assets/1 (1).png",
-  },
-  {
-    id: "category",
-    title: "JEWELLERY BY CATEGORY",
-    subtitle: "DISCOVER THE CAMPAIGN",
-    image: "/assets/1 (3).png",
-  },
-  {
-    id: "collection",
-    title: "JEWELLERY BY COLLECTION",
-    subtitle: "DISCOVER THE CAMPAIGN",
-    image: "/assets/1 (5).png",
-  },
-  {
-    id: "high-jewellery",
-    title: "HIGH JEWELLERY",
-    subtitle: "DISCOVER THE CAMPAIGN",
-    image: "/assets/1 (6).png",
-  },
-  {
-    id: "watch",
-    title: "WATCH",
-    subtitle: "DISCOVER THE CAMPAIGN",
-    image: "/assets/1 (7).png",
-  },
-  {
-    id: "brooch",
-    title: "BROOCH",
-    subtitle: "DISCOVER THE CAMPAIGN",
-    image: "/assets/1 (2).png",
-  },
-];
-
-const galleryImages = [
-  { src: "/assets/1 (2).png", alt: "Diamond earring" },
-  { src: "/assets/1 (5).png", alt: "Gold chain necklace" },
-  { src: "/assets/1 (6).png", alt: "Sculpted ring" },
-  { src: "/assets/1 (7).png", alt: "Sculpted ring" },
-];
+/** Renders an image or video that fills its (positioned) parent. Used for both
+ *  the full-screen campaign panels and the gallery strip. */
+function FillMedia({
+  src,
+  alt,
+  mediaType,
+  poster,
+  eager = false,
+  sizes,
+  className,
+}: {
+  src: string;
+  alt: string;
+  mediaType: MediaType;
+  poster?: string;
+  eager?: boolean;
+  sizes: string;
+  className: string;
+}) {
+  if (mediaType === "video") {
+    return (
+      <video
+        src={src}
+        poster={poster}
+        autoPlay
+        muted
+        loop
+        playsInline
+        aria-label={alt}
+        className={`absolute inset-0 h-full w-full ${className}`}
+      />
+    );
+  }
+  if (isRemote(src)) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={src}
+        alt={alt}
+        className={`absolute inset-0 h-full w-full ${className}`}
+      />
+    );
+  }
+  return (
+    <Image
+      src={src}
+      alt={alt}
+      fill
+      preload={eager}
+      sizes={sizes}
+      className={className}
+    />
+  );
+}
 
 /** Animated vertical loading indicator (Lottie) shown beneath each caption.
  *  Falls back to no animation when the visitor prefers reduced motion. */
@@ -100,16 +109,17 @@ function CampaignArtwork({
   section,
   eager,
 }: {
-  section: Section;
+  section: CampaignSection;
   eager: boolean;
 }) {
   return (
     <>
-      <Image
-        src={section.image}
+      <FillMedia
+        src={section.src}
         alt={section.title}
-        fill
-        preload={eager}
+        mediaType={section.mediaType}
+        poster={section.poster}
+        eager={eager}
         sizes="100vw"
         className="object-cover object-center"
       />
@@ -148,7 +158,13 @@ function getMotionAllowedOnServer() {
   return false;
 }
 
-export default function Home() {
+export default function Home({
+  sections,
+  gallery,
+}: {
+  sections: CampaignSection[];
+  gallery: GalleryItem[];
+}) {
   // `false` during SSR + hydration (matching the static fallback markup), then
   // `true` on the client when motion is allowed. useSyncExternalStore keeps the
   // swap hydration-safe and re-evaluates if the OS preference changes.
@@ -201,7 +217,7 @@ export default function Home() {
       window.removeEventListener("resize", onScroll);
       if (raf) cancelAnimationFrame(raf);
     };
-  }, [revealEnabled]);
+  }, [revealEnabled, sections.length]);
 
   return (
     <div className="min-h-screen bg-white text-neutral-900 selection:bg-gold-200 selection:text-black">
@@ -253,15 +269,16 @@ export default function Home() {
 
         {/* --- BOTTOM GALLERY --- */}
         <section className="no-scrollbar flex snap-x snap-mandatory gap-[2px] overflow-x-auto bg-neutral-200">
-          {galleryImages.map((img, i) => (
+          {gallery.map((item) => (
             <div
-              key={`${img.src}-${i}`}
+              key={item.id}
               className="group relative aspect-[839/1075] w-[85vw] shrink-0 snap-start overflow-hidden md:w-[839px]"
             >
-              <Image
-                src={img.src}
-                alt={img.alt}
-                fill
+              <FillMedia
+                src={item.src}
+                alt={item.alt}
+                mediaType={item.mediaType}
+                poster={item.poster}
                 sizes="(max-width: 768px) 85vw, 839px"
                 className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
               />

@@ -3,23 +3,18 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { notFound } from "next/navigation";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-import { getProduct, products } from "../data/products";
+import type { Product } from "../data/products";
 
 interface ProductDetailProps {
-  slug: string;
+  product: Product;
+  related: Product[];
 }
 
-export default function ProductDetail({ slug }: ProductDetailProps) {
-  const product = getProduct(slug);
-  if (!product) notFound();
-
+export default function ProductDetail({ product, related }: ProductDetailProps) {
   const [material, setMaterial] = useState(product.materials[0]);
   const [added, setAdded] = useState(false);
-
-  const related = products.filter((p) => p.slug !== product.slug).slice(0, 3);
 
   function handleAddToBag() {
     // Placeholder — wire up to a cart store / API to persist the selection.

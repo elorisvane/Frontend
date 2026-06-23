@@ -1,3 +1,5 @@
+import { getSupabase } from "../lib/supabase";
+
 export interface Product {
   slug: string;
   name: string;
@@ -16,7 +18,9 @@ export interface Product {
   materials: string[];
 }
 
-export const products: Product[] = [
+/** Bundled sample catalogue — the fallback when Supabase is unavailable, and a
+ *  lightweight static index for the client-side header search. */
+export const fallbackProducts: Product[] = [
   {
     slug: "aurora-diamond-necklace",
     name: "Aurora Diamond Necklace",
@@ -133,12 +137,61 @@ export const products: Product[] = [
   },
 ];
 
-export function getProduct(slug: string): Product | undefined {
-  const exact = products.find((p) => p.slug === slug);
+interface ProductRow {
+  slug: string;
+  name: string;
+  category: string;
+  price: string;
+  tagline: string;
+  image: string;
+  description: string[] | null;
+  details: { label: string; value: string }[] | null;
+  materials: string[] | null;
+}
+
+function mapProduct(row: ProductRow): Product {
+  return {
+    slug: row.slug,
+    name: row.name,
+    category: row.category,
+    price: row.price,
+    tagline: row.tagline,
+    image: row.image,
+    description: row.description ?? [],
+    details: row.details ?? [],
+    materials: row.materials ?? [],
+  };
+}
+
+/**
+ * All products, read from Supabase ordered by the admin's sort order. Falls back
+ * to the bundled sample catalogue when Supabase is not configured, errors, or is
+ * empty — so the storefront always has something to show.
+ */
+export async function getProducts(): Promise<Product[]> {
+  const supabase = getSupabase();
+  if (!supabase) return fallbackProducts;
+  try {
+    const { data, error } = await supabase
+      .from("products")
+      .select("*")
+      .order("sort_order", { ascending: true });
+    if (error || !data || data.length === 0) return fallbackProducts;
+    return (data as ProductRow[]).map(mapProduct);
+  } catch {
+    return fallbackProducts;
+  }
+}
+
+/**
+ * A single product by slug. The listing page mocks an expanded catalogue by
+ * appending a numeric variant suffix (e.g. "-2", "-3") to real slugs; resolve
+ * those back to the base product so variant cards never land on a 404.
+ */
+export async function getProduct(slug: string): Promise<Product | undefined> {
+  const all = await getProducts();
+  const exact = all.find((p) => p.slug === slug);
   if (exact) return exact;
-  // The listing page mocks an expanded catalogue by appending a numeric variant
-  // suffix (e.g. "-2", "-3") to real slugs. Resolve those back to the base
-  // product so variant cards never land on a 404.
   const base = slug.replace(/-\d+$/, "");
-  return products.find((p) => p.slug === base);
+  return all.find((p) => p.slug === base);
 }

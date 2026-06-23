@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-import { products } from "../data/products";
+import type { Product } from "../data/products";
 
 // Maps filter checkbox category to product.category in the data
 const getFilterCategory = (prodCategory: string): string => {
@@ -32,7 +32,7 @@ const matchesCollection = (prodName: string, collection: string): boolean => {
   return normName.includes(normColl);
 };
 
-export default function Products() {
+export default function Products({ products }: { products: Product[] }) {
   // --- STATE ---
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedCollections, setSelectedCollections] = useState<string[]>([]);
@@ -79,7 +79,7 @@ export default function Products() {
         };
       }),
     ];
-  }, []);
+  }, [products]);
 
   // --- FILTER & SORT CALCULATION ---
   const filteredProducts = useMemo(() => {

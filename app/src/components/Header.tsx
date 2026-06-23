@@ -3,8 +3,11 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { posts } from "../data/posts";
-import { products } from "../data/products";
+// The header search runs on the client, so it indexes the bundled catalogue
+// rather than fetching from Supabase on every keystroke. The seeded database
+// mirrors this list, so results stay in sync.
+import { fallbackPosts as posts } from "../data/posts";
+import { fallbackProducts as products } from "../data/products";
 
 const navLinks = [
   { href: "/", label: "HOME" },
@@ -127,7 +130,7 @@ export default function Header({
               height={47}
               priority
               // Logo art is solid black; invert it to white over the dark/transparent header.
-              className={`h-20 w-auto md:h-8 ${light ? "" : "invert"}`}
+              className={`h-10 w-auto md:h-8 ${light ? "" : "invert"}`}
             />
           </Link>
 

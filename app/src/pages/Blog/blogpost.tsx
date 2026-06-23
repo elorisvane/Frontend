@@ -1,20 +1,15 @@
 import Image from "next/image";
 import Link from "next/link";
-import { notFound } from "next/navigation";
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
-import { getPost, posts } from "../../data/posts";
+import type { Post } from "../../data/posts";
 
 interface BlogPostProps {
-  slug: string;
+  post: Post;
+  related: Post[];
 }
 
-export default function BlogPost({ slug }: BlogPostProps) {
-  const post = getPost(slug);
-  if (!post) notFound();
-
-  const related = posts.filter((p) => p.slug !== post.slug).slice(0, 3);
-
+export default function BlogPost({ post, related }: BlogPostProps) {
   return (
     <div className="min-h-screen bg-white text-neutral-900 selection:bg-gold-200 selection:text-black">
       <Header transparent />
