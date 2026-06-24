@@ -104,6 +104,30 @@ function DotIndicator() {
   return <div ref={containerRef} className="mt-4 h-8 w-[5px]" aria-hidden />;
 }
 
+/** Wraps children in a link when `href` is set, otherwise a plain element.
+ *  External (http) URLs open in a new tab; relative paths navigate in place. */
+function MaybeLink({
+  href,
+  className,
+  children,
+}: {
+  href?: string;
+  className?: string;
+  children: React.ReactNode;
+}) {
+  if (!href) return <div className={className}>{children}</div>;
+  const external = /^https?:\/\//i.test(href);
+  return (
+    <a
+      href={href}
+      className={className}
+      {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+    >
+      {children}
+    </a>
+  );
+}
+
 /** Full-bleed campaign image with its gradient scrim and bottom caption.
  *  Shared by both the static (fallback) and the scroll-reveal layouts. */
 function CampaignArtwork({
@@ -128,12 +152,17 @@ function CampaignArtwork({
       <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
 
       <div className="absolute inset-0 z-10 flex flex-col items-center justify-end pb-16 text-center md:pb-20">
-        <h2 className="font-sans text-2xl md:text-[30px] font-medium uppercase tracking-wider text-white drop-shadow-sm">
-          {section.title}
-        </h2>
-        <p className="mt-3 font-sans text-[10px] uppercase tracking-wider text-white underline underline-offset-4 transition-opacity hover:opacity-70">
-          {section.subtitle}
-        </p>
+        <MaybeLink
+          href={section.linkUrl}
+          className="flex flex-col items-center transition-opacity hover:opacity-80"
+        >
+          <h2 className="font-sans text-2xl md:text-[30px] font-medium uppercase tracking-wider text-white drop-shadow-sm">
+            {section.title}
+          </h2>
+          <p className="mt-3 font-sans text-[10px] uppercase tracking-wider text-white underline underline-offset-4 transition-opacity hover:opacity-70">
+            {section.subtitle}
+          </p>
+        </MaybeLink>
         <DotIndicator />
       </div>
     </>
@@ -271,9 +300,10 @@ export default function Home({
         {/* --- BOTTOM GALLERY --- */}
         <section className="no-scrollbar flex snap-x snap-mandatory gap-[2px] overflow-x-auto bg-neutral-200">
           {gallery.map((item) => (
-            <div
+            <MaybeLink
               key={item.id}
-              className="group relative aspect-[839/1075] w-[85vw] shrink-0 snap-start overflow-hidden md:w-[839px]"
+              href={item.linkUrl}
+              className="group relative block aspect-[839/1075] w-[85vw] shrink-0 snap-start overflow-hidden md:w-[839px]"
             >
               <FillMedia
                 src={item.src}
@@ -283,7 +313,12 @@ export default function Home({
                 sizes="(max-width: 768px) 85vw, 839px"
                 className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
               />
-            </div>
+              {item.alt && (
+                <span className="pointer-events-none absolute inset-x-0 bottom-12 z-10 px-4 text-center font-sans text-[40px] font-medium leading-[30px] tracking-normal text-white [text-shadow:0_2px_10px_rgba(0,0,0,0.55)]">
+                  {item.alt}
+                </span>
+              )}
+            </MaybeLink>
           ))}
         </section>
       </main>

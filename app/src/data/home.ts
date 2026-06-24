@@ -12,6 +12,8 @@ export interface CampaignSection {
   src: string;
   /** Optional still frame for videos. */
   poster?: string;
+  /** Optional click-through URL — makes the caption a link. */
+  linkUrl?: string;
 }
 
 /** An item in the horizontal gallery strip near the bottom of the home page. */
@@ -21,6 +23,8 @@ export interface GalleryItem {
   mediaType: MediaType;
   src: string;
   poster?: string;
+  /** Optional click-through URL — makes the image a link. */
+  linkUrl?: string;
 }
 
 export interface HomeMediaContent {
@@ -61,6 +65,7 @@ interface HomeMediaRow {
   title: string | null;
   subtitle: string | null;
   alt: string | null;
+  link_url: string | null;
   sort_order: number | null;
 }
 
@@ -93,6 +98,7 @@ export async function getHomeMedia(): Promise<HomeMediaContent> {
         mediaType: r.media_type ?? "image",
         src: r.src,
         poster: r.poster ?? undefined,
+        linkUrl: r.link_url ?? undefined,
       }));
 
     const gallery: GalleryItem[] = rows
@@ -103,6 +109,7 @@ export async function getHomeMedia(): Promise<HomeMediaContent> {
         mediaType: r.media_type ?? "image",
         src: r.src,
         poster: r.poster ?? undefined,
+        linkUrl: r.link_url ?? undefined,
       }));
 
     return {
