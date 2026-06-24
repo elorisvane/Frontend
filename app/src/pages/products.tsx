@@ -168,6 +168,8 @@ export default function Products({ products }: { products: Product[] }) {
           alt="Eloris Creations"
           fill
           priority
+          quality={90}
+          sizes="100vw"
           className="object-cover object-center"
         />
       </div>
@@ -476,6 +478,7 @@ export default function Products({ products }: { products: Product[] }) {
                           src="/assets/1 (1).png"
                           alt="Maison Eloris Campaign"
                           fill
+                          quality={90}
                           sizes="(max-width: 640px) 100vw, 50vw"
                           className="object-cover transition-transform duration-[1.2s] ease-out group-hover:scale-105"
                         />
@@ -509,6 +512,7 @@ export default function Products({ products }: { products: Product[] }) {
                             src={item.image}
                             alt={item.name}
                             fill
+                            quality={90}
                             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
                             className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                           />

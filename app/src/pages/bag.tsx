@@ -70,6 +70,7 @@ export default function Bag() {
                       src={item.image}
                       alt={item.name}
                       fill
+                      quality={90}
                       sizes="96px"
                       className="object-cover"
                     />

@@ -21,6 +21,7 @@ export default function BlogPost({ post, related }: BlogPostProps) {
           alt={post.title}
           fill
           priority
+          quality={90}
           sizes="100vw"
           className="object-cover object-center"
         />
@@ -78,6 +79,7 @@ export default function BlogPost({ post, related }: BlogPostProps) {
                     src={p.image}
                     alt={p.title}
                     fill
+                    quality={90}
                     sizes="(max-width: 640px) 100vw, 33vw"
                     className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                   />

@@ -30,6 +30,7 @@ export default function About() {
           alt="The ÉLORIS maison"
           fill
           priority
+          quality={90}
           sizes="100vw"
           className="object-cover object-center"
         />
@@ -80,6 +81,7 @@ export default function About() {
             src="/assets/1 (6).png"
             alt="Inside the atelier"
             fill
+            quality={90}
             sizes="(max-width: 768px) 100vw, 50vw"
             className="object-cover"
           />

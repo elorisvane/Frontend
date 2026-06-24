@@ -62,6 +62,7 @@ function FillMedia({
       alt={alt}
       fill
       preload={eager}
+      quality={90}
       sizes={sizes}
       className={className}
     />
