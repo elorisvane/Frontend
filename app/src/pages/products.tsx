@@ -45,40 +45,15 @@ export default function Products({ products }: { products: Product[] }) {
   const [categoryOpen, setCategoryOpen] = useState<boolean>(true);
   const [collectionOpen, setCollectionOpen] = useState<boolean>(true);
 
-  // --- MOCK PRODUCT DUPLICATION ---
-  // Create an expanded collection (18 items) to match high-end listing page aesthetics
+  // --- PRODUCT LIST ---
+  // Show the real admin-managed catalogue as-is (no mock duplication), so the
+  // storefront count always matches the Admin's product count.
   const allProducts = useMemo(() => {
-    return [
-      ...products.map((p) => ({
-        ...p,
-        id: `${p.slug}-1`,
-        availableOnline: parseFloat(p.price.replace(/[^0-9.]/g, "")) < 45000,
-      })),
-      ...products.map((p) => {
-        const rawPrice = parseFloat(p.price.replace(/[^0-9.]/g, ""));
-        const adjustedPrice = Math.round(rawPrice * 1.35);
-        return {
-          ...p,
-          name: `${p.name} II`,
-          slug: `${p.slug}-2`,
-          id: `${p.slug}-2`,
-          price: `$${adjustedPrice.toLocaleString()}`,
-          availableOnline: adjustedPrice < 45000,
-        };
-      }),
-      ...products.map((p) => {
-        const rawPrice = parseFloat(p.price.replace(/[^0-9.]/g, ""));
-        const adjustedPrice = Math.round(rawPrice * 0.75);
-        return {
-          ...p,
-          name: `${p.name} III`,
-          slug: `${p.slug}-3`,
-          id: `${p.slug}-3`,
-          price: `$${adjustedPrice.toLocaleString()}`,
-          availableOnline: adjustedPrice < 45000,
-        };
-      }),
-    ];
+    return products.map((p) => ({
+      ...p,
+      id: p.slug,
+      availableOnline: parseFloat(p.price.replace(/[^0-9.]/g, "")) < 45000,
+    }));
   }, [products]);
 
   // --- FILTER & SORT CALCULATION ---
