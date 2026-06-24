@@ -15,7 +15,11 @@ interface ProductDetailProps {
 
 export default function ProductDetail({ product, related }: ProductDetailProps) {
   const { add } = useCart();
+  const gallery = (
+    product.images?.length ? product.images : [product.image]
+  ).filter(Boolean);
   const [material, setMaterial] = useState(product.materials[0] ?? "");
+  const [activeImage, setActiveImage] = useState(gallery[0] ?? product.image);
   const [added, setAdded] = useState(false);
 
   function handleAddToBag() {
@@ -44,16 +48,43 @@ export default function ProductDetail({ product, related }: ProductDetailProps) 
         </nav>
 
         <div className="mt-10 grid grid-cols-1 gap-12 md:grid-cols-2 md:gap-16">
-          {/* Image */}
-          <div className="relative aspect-[4/5] overflow-hidden bg-neutral-100">
-            <Image
-              src={product.image}
-              alt={product.name}
-              fill
-              priority
-              sizes="(max-width: 768px) 100vw, 50vw"
-              className="object-cover object-center"
-            />
+          {/* Gallery */}
+          <div>
+            <div className="relative aspect-[4/5] overflow-hidden bg-neutral-100">
+              <Image
+                src={activeImage}
+                alt={product.name}
+                fill
+                priority
+                sizes="(max-width: 768px) 100vw, 50vw"
+                className="object-cover object-center"
+              />
+            </div>
+            {gallery.length > 1 && (
+              <div className="mt-4 grid grid-cols-5 gap-3">
+                {gallery.map((src, i) => (
+                  <button
+                    key={`${src}-${i}`}
+                    type="button"
+                    onClick={() => setActiveImage(src)}
+                    aria-label={`View photo ${i + 1}`}
+                    className={`relative aspect-square overflow-hidden bg-neutral-100 transition-opacity ${
+                      activeImage === src
+                        ? "ring-1 ring-neutral-900"
+                        : "opacity-70 hover:opacity-100"
+                    }`}
+                  >
+                    <Image
+                      src={src}
+                      alt=""
+                      fill
+                      sizes="(max-width: 768px) 20vw, 10vw"
+                      className="object-cover object-center"
+                    />
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Info */}

@@ -10,6 +10,8 @@ export interface Product {
   tagline: string;
   /** Hero / card image. */
   image: string;
+  /** Full photo gallery (cover first). Optional; falls back to `[image]`. */
+  images?: string[];
   /** Longer descriptive paragraphs for the product page. */
   description: string[];
   /** Key specifications shown as a detail list. */
@@ -144,6 +146,7 @@ interface ProductRow {
   price: string;
   tagline: string;
   image: string;
+  images: string[] | null;
   description: string[] | null;
   details: { label: string; value: string }[] | null;
   materials: string[] | null;
@@ -157,6 +160,7 @@ function mapProduct(row: ProductRow): Product {
     price: row.price,
     tagline: row.tagline,
     image: row.image,
+    images: row.images?.length ? row.images : row.image ? [row.image] : [],
     description: row.description ?? [],
     details: row.details ?? [],
     materials: row.materials ?? [],
