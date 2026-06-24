@@ -56,7 +56,11 @@ export default function ProductDetail({ product, related }: ProductDetailProps) 
                 alt={product.name}
                 fill
                 priority
-                quality={100}
+                // Serve the original file untouched: the hero photo is the focal
+                // selling surface, so we skip the optimizer (no re-compression
+                // and no crop-upscaling when a wide photo sits in this tall 4:5
+                // frame) for the crispest possible result.
+                unoptimized
                 sizes="(max-width: 768px) 100vw, 50vw"
                 className="object-cover object-center"
               />
@@ -79,7 +83,7 @@ export default function ProductDetail({ product, related }: ProductDetailProps) 
                       src={src}
                       alt=""
                       fill
-                      quality={90}
+                      quality={100}
                       sizes="(max-width: 768px) 20vw, 10vw"
                       className="object-cover object-center"
                     />
@@ -197,7 +201,7 @@ export default function ProductDetail({ product, related }: ProductDetailProps) 
                     src={p.image}
                     alt={p.name}
                     fill
-                    quality={90}
+                    quality={100}
                     sizes="(max-width: 640px) 100vw, 33vw"
                     className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                   />
