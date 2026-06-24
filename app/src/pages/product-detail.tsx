@@ -50,7 +50,7 @@ export default function ProductDetail({ product, related }: ProductDetailProps) 
         <div className="mt-10 grid grid-cols-1 gap-12 md:grid-cols-2 md:gap-16">
           {/* Gallery */}
           <div>
-            <div className="relative aspect-[4/5] overflow-hidden bg-neutral-100">
+            <div className="relative aspect-square overflow-hidden bg-neutral-100">
               <Image
                 src={activeImage}
                 alt={product.name}
@@ -196,7 +196,7 @@ export default function ProductDetail({ product, related }: ProductDetailProps) 
           <div className="mt-12 grid grid-cols-1 gap-x-10 gap-y-12 sm:grid-cols-3">
             {related.map((p) => (
               <Link key={p.slug} href={`/products/${p.slug}`} className="group">
-                <div className="relative aspect-[4/5] overflow-hidden bg-neutral-100">
+                <div className="relative aspect-square overflow-hidden bg-neutral-100">
                   <Image
                     src={p.image}
                     alt={p.name}

@@ -179,7 +179,7 @@ export default function Products({ products }: { products: Product[] }) {
         {/* --- TOP CONTROL BAR --- */}
         <div className="flex items-end justify-between border-b border-neutral-200 pb-5 md:gap-10">
           {/* Breadcrumb (aligns above the sidebar on desktop) */}
-          <nav className="hidden min-w-[240px] shrink-0 whitespace-nowrap text-[10px] tracking-[0.2em] text-neutral-400 md:block">
+          <nav className="hidden min-w-[240px] shrink-0 whitespace-nowrap text-[12px] tracking-[0.2em] text-neutral-400 md:block">
             <span className="cursor-pointer hover:text-neutral-900">Home</span>
             <span className="mx-2">|</span>
             <span className="cursor-pointer hover:text-neutral-900">
@@ -507,7 +507,7 @@ export default function Products({ products }: { products: Product[] }) {
                     >
                       <div>
                         {/* Aspect block for standard square/rectangular card */}
-                        <div className="relative aspect-[4/5] overflow-hidden bg-neutral-50">
+                        <div className="relative aspect-square overflow-hidden bg-neutral-50">
                           <Image
                             src={item.image}
                             alt={item.name}
@@ -517,14 +517,14 @@ export default function Products({ products }: { products: Product[] }) {
                             className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                           />
                         </div>
-                        <h2 className="mt-5 font-serif text-base font-light leading-snug tracking-wide text-neutral-800 transition-colors group-hover:text-neutral-500">
+                        <h2 className="mt-5 text-center font-sans text-[20px] font-normal leading-[23px] tracking-normal text-neutral-800 transition-colors group-hover:text-neutral-500">
                           {item.name}
                         </h2>
-                        <p className="mt-2 font-sans text-[11px] leading-relaxed text-neutral-400">
+                        <p className="mt-2 text-center font-sans text-[14px] font-light leading-[23px] tracking-normal text-neutral-400">
                           {item.tagline}
                         </p>
                       </div>
-                      <p className="mt-3 font-sans text-xs font-medium tracking-wider text-neutral-700">
+                      <p className="mt-3 text-center font-sans text-[14px] font-light leading-[23px] tracking-normal text-neutral-700">
                         {item.price}
                       </p>
                     </Link>
