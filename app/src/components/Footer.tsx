@@ -44,7 +44,11 @@ const socials = [
     icon: (
       <>
         <rect x="2.5" y="6" width="19" height="12" rx="3.5" />
-        <path d="M10.5 9.2v5.6l4.8-2.8-4.8-2.8Z" fill="currentColor" stroke="none" />
+        <path
+          d="M10.5 9.2v5.6l4.8-2.8-4.8-2.8Z"
+          fill="currentColor"
+          stroke="none"
+        />
       </>
     ),
   },
@@ -152,7 +156,13 @@ export default function Footer() {
 
         <div className="mt-14 border-t border-white/10 pt-8 text-center">
           <p className="font-sans text-[10px] tracking-[0.25em] text-white/40">
-            ÉLORIS, Inc. {new Date().getFullYear()}
+            ÉLORIS, Inc. {new Date().getFullYear()} All rights reserved.{" "}
+            <Link
+              href="https://mobintix.app"
+              className="font-sans text-[10px] tracking-[0.25em] text-white/40 underline"
+            >
+              Mobintix Infotech
+            </Link>
           </p>
         </div>
       </div>

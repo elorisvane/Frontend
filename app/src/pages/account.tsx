@@ -10,6 +10,7 @@ import PersonalDetails from "../components/account/PersonalDetails";
 import AddressBook from "../components/account/AddressBook";
 import { useAuth } from "../lib/auth";
 import { getMyOrders, type Order } from "../data/orders";
+import { getProducts } from "../data/products";
 
 const inputClass =
   "w-full border-b border-neutral-300 bg-transparent py-3 font-sans text-sm tracking-[0.05em] text-neutral-900 placeholder-neutral-400 transition-colors focus:border-neutral-900 focus:outline-none";
@@ -289,17 +290,34 @@ function Dashboard() {
 
 function OrderHistory() {
   const [orders, setOrders] = useState<Order[] | null>(null);
+  const [slugs, setSlugs] = useState<Set<string>>(new Set());
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
-    getMyOrders()
-      .then((data) => active && setOrders(data))
-      .catch((err) => active && setError(err.message));
+    Promise.all([getMyOrders(), getProducts()])
+      .then(([myOrders, products]) => {
+        if (!active) return;
+        setOrders(myOrders);
+        setSlugs(new Set(products.map((p) => p.slug)));
+      })
+      .catch(
+        (err) =>
+          active &&
+          setError(
+            err instanceof Error ? err.message : "Could not load orders.",
+          ),
+      );
     return () => {
       active = false;
     };
   }, []);
+
+  // A line links to its product only when that product still exists, so a
+  // deleted or mistyped slug never navigates to a 404. Mirror getProduct's
+  // variant rule (a trailing "-2" resolves to the base slug).
+  const productExists = (slug: string) =>
+    Boolean(slug) && (slugs.has(slug) || slugs.has(slug.replace(/-\d+$/, "")));
 
   if (error) {
     return (
@@ -349,14 +367,12 @@ function OrderHistory() {
               {order.status}
             </span>
           </div>
-          <ul className="mt-4 space-y-4">
-            {order.items.map((item, i) => (
-              <li key={`${item.slug}-${item.material}-${i}`}>
-                <Link
-                  href={`/products/${item.slug}`}
-                  className="group flex items-center gap-4"
-                >
-                  <div className="relative aspect-[4/5] w-14 shrink-0 overflow-hidden bg-neutral-100">
+          <ul className="mt-5 space-y-5">
+            {order.items.map((item, i) => {
+              const linkable = productExists(item.slug);
+              const body = (
+                <>
+                  <div className="relative h-16 w-14 shrink-0 overflow-hidden bg-neutral-100">
                     {item.image && (
                       <Image
                         src={item.image}
@@ -378,9 +394,23 @@ function OrderHistory() {
                   <span className="shrink-0 font-sans text-[13px] tracking-[0.04em] text-neutral-600">
                     {item.price}
                   </span>
-                </Link>
-              </li>
-            ))}
+                </>
+              );
+              return (
+                <li key={`${item.slug}-${item.material}-${i}`}>
+                  {linkable ? (
+                    <Link
+                      href={`/products/${item.slug}`}
+                      className="group flex items-center gap-4"
+                    >
+                      {body}
+                    </Link>
+                  ) : (
+                    <div className="flex items-center gap-4">{body}</div>
+                  )}
+                </li>
+              );
+            })}
           </ul>
           {order.total && (
             <p className="mt-3 text-right font-serif text-lg font-light tracking-[0.05em] text-neutral-800">

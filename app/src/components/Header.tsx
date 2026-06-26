@@ -9,6 +9,7 @@ import Link from "next/link";
 import { getPosts, fallbackPosts, type Post } from "../data/posts";
 import { getProducts, fallbackProducts, type Product } from "../data/products";
 import { useCart } from "../lib/cart";
+import { useWishlist } from "../lib/wishlist";
 
 const navLinks = [
   { href: "/", label: "HOME" },
@@ -31,6 +32,7 @@ export default function Header({
   light = false,
 }: HeaderProps) {
   const { count } = useCart();
+  const { count: wishlistCount } = useWishlist();
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -202,8 +204,8 @@ export default function Header({
             </Link>
             <Link
               href="/wishlist"
-              aria-label="Wishlist"
-              className={`hidden transition-colors sm:block ${light ? "hover:text-gold-500" : "hover:text-gold-200"}`}
+              aria-label={`Wishlist${mounted && wishlistCount > 0 ? ` (${wishlistCount})` : ""}`}
+              className={`relative hidden transition-colors sm:block ${light ? "hover:text-gold-500" : "hover:text-gold-200"}`}
             >
               <svg
                 className="h-5 w-5"
@@ -218,6 +220,11 @@ export default function Header({
                   d="M12 20.5 4.5 13a4.5 4.5 0 0 1 7.5-4.9A4.5 4.5 0 0 1 19.5 13L12 20.5Z"
                 />
               </svg>
+              {mounted && wishlistCount > 0 && (
+                <span className="absolute -right-2 -top-2 flex h-4 min-w-4 items-center justify-center rounded-full bg-gold-500 px-1 font-sans text-[9px] font-medium leading-none text-white">
+                  {wishlistCount}
+                </span>
+              )}
             </Link>
             <Link
               href="/bag"

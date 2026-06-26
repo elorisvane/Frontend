@@ -7,6 +7,7 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import type { Product } from "../data/products";
 import { useCart } from "../lib/cart";
+import { useWishlist } from "../lib/wishlist";
 
 interface ProductDetailProps {
   product: Product;
@@ -15,6 +16,8 @@ interface ProductDetailProps {
 
 export default function ProductDetail({ product, related }: ProductDetailProps) {
   const { add } = useCart();
+  const { has, toggle } = useWishlist();
+  const saved = has(product.slug);
   const gallery = (
     product.images?.length ? product.images : [product.image]
   ).filter(Boolean);
@@ -145,6 +148,41 @@ export default function ProductDetail({ product, related }: ProductDetailProps) 
                 BOOK AN APPOINTMENT
               </Link>
             </div>
+
+            {/* Wishlist */}
+            <button
+              type="button"
+              onClick={() =>
+                toggle({
+                  slug: product.slug,
+                  name: product.name,
+                  image: product.image,
+                  price: product.price,
+                  category: product.category,
+                })
+              }
+              aria-pressed={saved}
+              className={`mt-6 flex items-center gap-2.5 font-sans text-[11px] tracking-[0.3em] transition-colors ${
+                saved
+                  ? "text-gold-600"
+                  : "text-neutral-500 hover:text-neutral-900"
+              }`}
+            >
+              <svg
+                className="h-4 w-4"
+                viewBox="0 0 24 24"
+                fill={saved ? "currentColor" : "none"}
+                stroke="currentColor"
+                strokeWidth="1.2"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M12 20.5 4.5 13a4.5 4.5 0 0 1 7.5-4.9A4.5 4.5 0 0 1 19.5 13L12 20.5Z"
+                />
+              </svg>
+              {saved ? "SAVED TO WISHLIST" : "SAVE TO WISHLIST"}
+            </button>
 
             {added && (
               <p className="mt-5 font-sans text-[11px] tracking-[0.15em] text-neutral-600">
