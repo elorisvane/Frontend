@@ -11,6 +11,8 @@ import AddressBook from "../components/account/AddressBook";
 import { useAuth } from "../lib/auth";
 import { getMyOrders, type Order } from "../data/orders";
 import { getProducts } from "../data/products";
+import { upsertProfile, createAddress } from "../data/profile";
+import { COUNTRIES, postalLabel } from "../lib/countries";
 
 const inputClass =
   "w-full border-b border-neutral-300 bg-transparent py-3 font-sans text-sm tracking-[0.05em] text-neutral-900 placeholder-neutral-400 transition-colors focus:border-neutral-900 focus:outline-none";
@@ -45,18 +47,73 @@ export default function Account() {
 /* Signed-out: sign in / register                                             */
 /* -------------------------------------------------------------------------- */
 
+function GoogleIcon() {
+  return (
+    <svg className="h-4 w-4" viewBox="0 0 24 24" aria-hidden>
+      <path
+        fill="#4285F4"
+        d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.27-4.74 3.27-8.1z"
+      />
+      <path
+        fill="#34A853"
+        d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84A11 11 0 0 0 12 23z"
+      />
+      <path
+        fill="#FBBC05"
+        d="M5.84 14.1a6.6 6.6 0 0 1 0-4.2V7.06H2.18a11 11 0 0 0 0 9.88l3.66-2.84z"
+      />
+      <path
+        fill="#EA4335"
+        d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84C6.71 7.31 9.14 5.38 12 5.38z"
+      />
+    </svg>
+  );
+}
+
+function AppleIcon() {
+  return (
+    <svg
+      className="h-4 w-4"
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      aria-hidden
+    >
+      <path d="M16.36 12.78c.02 2.36 2.07 3.15 2.1 3.16-.02.06-.33 1.13-1.09 2.24-.66.96-1.34 1.91-2.42 1.93-1.06.02-1.4-.63-2.61-.63-1.21 0-1.59.61-2.59.65-1.04.04-1.83-1.04-2.5-2-1.37-2-.91-5.96 1.25-7.45.56-.5 1.13-.78 1.84-.78 1.13-.02 2.2.76 2.89.76.69 0 1.99-.94 3.35-.8.57.02 2.17.23 3.2 1.74-.08.05-1.91 1.12-1.89 3.33M14.13 7.5c.57-.69.95-1.65.85-2.6-.82.03-1.81.55-2.4 1.24-.53.61-1 1.59-.87 2.53.91.07 1.85-.47 2.42-1.17" />
+    </svg>
+  );
+}
+
 function AuthPanel() {
-  const { signIn, signUp } = useAuth();
+  const { signIn, signUp, signInWithProvider } = useAuth();
   const router = useRouter();
   const [mode, setMode] = useState<Mode>("signin");
   const [pending, setPending] = useState(false);
+  const [oauthPending, setOauthPending] = useState<"google" | "apple" | null>(
+    null,
+  );
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [country, setCountry] = useState("US");
 
   function switchMode(next: Mode) {
     setMode(next);
     setError(null);
     setNotice(null);
+  }
+
+  async function handleOAuth(provider: "google" | "apple") {
+    if (oauthPending) return;
+    setError(null);
+    setNotice(null);
+    setOauthPending(provider);
+    try {
+      // On success the browser is redirected to the provider, so control does
+      // not return here; we only reach the catch on a configuration error.
+      await signInWithProvider(provider);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not continue.");
+      setOauthPending(null);
+    }
   }
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -83,17 +140,53 @@ function AuthPanel() {
         // off-site. Require a single leading slash not followed by / or \.
         if (redirect && /^\/(?![/\\])/.test(redirect)) router.push(redirect);
       } else {
+        const firstName = String(data.get("firstName") ?? "");
+        const lastName = String(data.get("lastName") ?? "");
+        const phone = String(data.get("phone") ?? "").trim();
+        const line1 = String(data.get("line1") ?? "").trim();
+        const city = String(data.get("city") ?? "").trim();
+        const region = String(data.get("state") ?? "").trim();
+        const postalCode = String(data.get("postalCode") ?? "").trim();
+        const countryCode = String(data.get("country") ?? "US");
+
         const { needsConfirmation } = await signUp({
-          firstName: String(data.get("firstName") ?? ""),
-          lastName: String(data.get("lastName") ?? ""),
+          firstName,
+          lastName,
           email,
           password,
         });
+
         if (needsConfirmation) {
           setNotice(
-            "Almost there — check your inbox to confirm your email, then sign in.",
+            "Almost there — check your inbox to confirm your email, then sign in. You can add your address from your account afterwards.",
           );
           setMode("signin");
+        } else {
+          // Session is active — persist the optional contact details + first
+          // address. Non-fatal: the account exists regardless, and they can
+          // complete these from their account later.
+          try {
+            if (phone) await upsertProfile({ firstName, lastName, phone });
+            if (line1 || city || postalCode) {
+              await createAddress({
+                recipientName: `${firstName} ${lastName}`.trim() || null,
+                phone: phone || null,
+                line1: line1 || null,
+                city: city || null,
+                state: region || null,
+                postalCode: postalCode || null,
+                country: countryCode,
+                isDefaultShipping: true,
+                isDefaultBilling: true,
+              });
+            }
+          } catch {
+            // Ignore — the address book can be filled in from the account page.
+          }
+          const redirect = new URLSearchParams(window.location.search).get(
+            "redirect",
+          );
+          if (redirect && /^\/(?![/\\])/.test(redirect)) router.push(redirect);
         }
       }
     } catch (err) {
@@ -148,7 +241,39 @@ function AuthPanel() {
           </p>
         )}
 
-        <form onSubmit={handleSubmit} className="mt-10 space-y-7">
+        {/* Social sign-in */}
+        <div className="mt-10 space-y-3">
+          <button
+            type="button"
+            onClick={() => handleOAuth("google")}
+            disabled={oauthPending !== null}
+            className="flex w-full items-center justify-center gap-3 border border-neutral-300 px-6 py-3 font-sans text-[11px] tracking-[0.25em] text-neutral-700 transition-colors hover:border-neutral-900 hover:text-neutral-900 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <GoogleIcon />
+            {oauthPending === "google"
+              ? "REDIRECTING…"
+              : "CONTINUE WITH GOOGLE"}
+          </button>
+          <button
+            type="button"
+            onClick={() => handleOAuth("apple")}
+            disabled={oauthPending !== null}
+            className="flex w-full items-center justify-center gap-3 border border-neutral-300 px-6 py-3 font-sans text-[11px] tracking-[0.25em] text-neutral-700 transition-colors hover:border-neutral-900 hover:text-neutral-900 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <AppleIcon />
+            {oauthPending === "apple" ? "REDIRECTING…" : "CONTINUE WITH APPLE"}
+          </button>
+        </div>
+
+        <div className="my-8 flex items-center gap-4">
+          <span className="h-px flex-1 bg-neutral-200" />
+          <span className="font-sans text-[10px] uppercase tracking-[0.3em] text-neutral-400">
+            or
+          </span>
+          <span className="h-px flex-1 bg-neutral-200" />
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-7">
           {mode === "register" && (
             <div className="grid grid-cols-1 gap-7 sm:grid-cols-2">
               <input
@@ -180,10 +305,65 @@ function AuthPanel() {
             name="password"
             type="password"
             minLength={6}
-            autoComplete={mode === "signin" ? "current-password" : "new-password"}
+            autoComplete={
+              mode === "signin" ? "current-password" : "new-password"
+            }
             placeholder="Password"
             className={inputClass}
           />
+
+          {mode === "register" && (
+            <div className="space-y-7 border-t border-neutral-200 pt-7">
+              <input
+                name="phone"
+                type="tel"
+                autoComplete="tel"
+                placeholder="Phone"
+                className={inputClass}
+              />
+              <input
+                name="line1"
+                autoComplete="address-line1"
+                placeholder="Address"
+                className={inputClass}
+              />
+              <div className="grid grid-cols-1 gap-7 sm:grid-cols-2">
+                <input
+                  name="city"
+                  autoComplete="address-level2"
+                  placeholder="City"
+                  className={inputClass}
+                />
+                <input
+                  name="state"
+                  autoComplete="address-level1"
+                  placeholder="State / Region"
+                  className={inputClass}
+                />
+              </div>
+              <div className="grid grid-cols-1 gap-7 sm:grid-cols-2">
+                <select
+                  name="country"
+                  value={country}
+                  onChange={(e) => setCountry(e.target.value)}
+                  autoComplete="country"
+                  className={inputClass}
+                >
+                  {COUNTRIES.map((c) => (
+                    <option key={c.code} value={c.code}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
+                <input
+                  name="postalCode"
+                  autoComplete="postal-code"
+                  placeholder={postalLabel(country)}
+                  className={inputClass}
+                />
+              </div>
+            </div>
+          )}
 
           {error && (
             <p className="font-sans text-[12px] tracking-[0.08em] text-red-600">
@@ -388,7 +568,8 @@ function OrderHistory() {
                       {item.name}
                     </p>
                     <p className="mt-1 font-sans text-[11px] tracking-[0.1em] text-neutral-400">
-                      {item.material ? `${item.material} · ` : ""}Qty {item.quantity}
+                      {item.material ? `${item.material} · ` : ""}Qty{" "}
+                      {item.quantity}
                     </p>
                   </div>
                   <span className="shrink-0 font-sans text-[13px] tracking-[0.04em] text-neutral-600">

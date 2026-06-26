@@ -26,6 +26,8 @@ interface AuthContextValue {
   /** Convenience: best-available display name for the user. */
   displayName: string | null;
   signIn: (email: string, password: string) => Promise<void>;
+  /** Begin an OAuth sign-in (Google / Apple). Redirects the browser away. */
+  signInWithProvider: (provider: "google" | "apple") => Promise<void>;
   /** Returns whether the account still needs email confirmation before sign-in. */
   signUp: (input: RegisterInput) => Promise<{ needsConfirmation: boolean }>;
   signOut: () => Promise<void>;
@@ -77,6 +79,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const { error } = await supabase.auth.signInWithPassword({
           email,
           password,
+        });
+        if (error) throw new Error(error.message);
+      },
+
+      async signInWithProvider(provider) {
+        const supabase = getSupabase();
+        if (!supabase) throw new Error(NOT_CONFIGURED);
+        // Come back to the page the shopper started from (e.g. /account, or the
+        // ?redirect target used by "sign in to order"). Same-origin paths only.
+        const redirect = new URLSearchParams(window.location.search).get(
+          "redirect",
+        );
+        const path =
+          redirect && /^\/(?![/\\])/.test(redirect) ? redirect : "/account";
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider,
+          options: { redirectTo: `${window.location.origin}${path}` },
         });
         if (error) throw new Error(error.message);
       },
