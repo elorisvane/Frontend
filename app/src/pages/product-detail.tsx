@@ -8,6 +8,7 @@ import Footer from "../components/Footer";
 import { productPath, categorySlug, type Product } from "../data/products";
 import { useCart } from "../lib/cart";
 import { useWishlist } from "../lib/wishlist";
+import ProductReviews from "../components/ProductReviews";
 
 interface ProductDetailProps {
   product: Product;
@@ -231,6 +232,9 @@ export default function ProductDetail({ product, related }: ProductDetailProps) 
           </div>
         </div>
       </section>
+
+      {/* Reviews */}
+      <ProductReviews slug={product.slug} />
 
       {/* Related */}
       <section className="border-t border-neutral-200 px-6 py-20 md:px-12">
