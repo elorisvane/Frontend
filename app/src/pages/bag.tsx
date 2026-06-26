@@ -5,35 +5,19 @@ import Image from "next/image";
 import Link from "next/link";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
+import CheckoutDetails from "../components/CheckoutDetails";
 import { useAuth } from "../lib/auth";
 import { useCart, formatCartTotal } from "../lib/cart";
-import { createOrder } from "../data/orders";
 
 export default function Bag() {
   const { items, setQuantity, remove, clear } = useCart();
   const { user, loading } = useAuth();
 
   const [note, setNote] = useState("");
-  const [placing, setPlacing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [step, setStep] = useState<"bag" | "checkout">("bag");
   const [placed, setPlaced] = useState(false);
 
   const total = formatCartTotal(items);
-
-  async function placeOrder() {
-    if (placing) return;
-    setError(null);
-    setPlacing(true);
-    try {
-      await createOrder({ items, total, note });
-      clear();
-      setPlaced(true);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Could not place your order.");
-    } finally {
-      setPlacing(false);
-    }
-  }
 
   return (
     <div className="min-h-screen bg-white text-neutral-900 selection:bg-gold-200 selection:text-black">
@@ -45,7 +29,7 @@ export default function Bag() {
             Shopping Bag
           </p>
           <h1 className="mt-4 font-serif text-4xl font-light tracking-[0.15em] md:text-6xl">
-            Your Bag
+            {step === "checkout" && user && !placed ? "Checkout" : "Your Bag"}
           </h1>
         </div>
 
@@ -53,6 +37,17 @@ export default function Bag() {
           <OrderPlaced />
         ) : items.length === 0 ? (
           <EmptyBag />
+        ) : step === "checkout" && user ? (
+          <CheckoutDetails
+            items={items}
+            total={total}
+            note={note}
+            onBack={() => setStep("bag")}
+            onPlaced={() => {
+              clear();
+              setPlaced(true);
+            }}
+          />
         ) : (
           <div className="mx-auto mt-16 grid max-w-5xl gap-16 lg:grid-cols-[1fr_360px]">
             {/* Line items */}
@@ -169,23 +164,16 @@ export default function Bag() {
                 />
               </label>
 
-              {error && (
-                <p className="mt-4 font-sans text-[12px] tracking-[0.08em] text-red-600">
-                  {error}
-                </p>
-              )}
-
               {loading ? (
                 <p className="mt-8 font-sans text-[11px] tracking-[0.3em] text-neutral-400">
                   LOADING…
                 </p>
               ) : user ? (
                 <button
-                  onClick={placeOrder}
-                  disabled={placing}
-                  className="mt-8 w-full bg-neutral-900 px-10 py-4 font-sans text-[11px] tracking-[0.3em] text-white transition-colors hover:bg-neutral-700 disabled:cursor-not-allowed disabled:opacity-50"
+                  onClick={() => setStep("checkout")}
+                  className="mt-8 w-full bg-neutral-900 px-10 py-4 font-sans text-[11px] tracking-[0.3em] text-white transition-colors hover:bg-neutral-700"
                 >
-                  {placing ? "PLACING ORDER…" : "PLACE ORDER"}
+                  PROCEED TO CHECKOUT
                 </button>
               ) : (
                 <div className="mt-8">

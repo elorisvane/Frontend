@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
+import PersonalDetails from "../components/account/PersonalDetails";
+import AddressBook from "../components/account/AddressBook";
 import { useAuth } from "../lib/auth";
 import { getMyOrders, type Order } from "../data/orders";
 
@@ -240,7 +242,22 @@ function Dashboard() {
         </button>
       </div>
 
-      <div className="mx-auto mt-16 max-w-3xl">
+      <div className="mx-auto mt-20 max-w-3xl space-y-20">
+        <section>
+          <h2 className="border-b border-neutral-200 pb-4 font-sans text-[11px] tracking-[0.35em] text-neutral-700">
+            MY DETAILS
+          </h2>
+          <PersonalDetails />
+        </section>
+
+        <section>
+          <h2 className="border-b border-neutral-200 pb-4 font-sans text-[11px] tracking-[0.35em] text-neutral-700">
+            ADDRESS BOOK
+          </h2>
+          <AddressBook />
+        </section>
+
+        <section>
         <h2 className="border-b border-neutral-200 pb-4 font-sans text-[11px] tracking-[0.35em] text-neutral-700">
           ORDER HISTORY
         </h2>
@@ -309,6 +326,7 @@ function Dashboard() {
             ))}
           </ul>
         )}
+        </section>
       </div>
     </>
   );

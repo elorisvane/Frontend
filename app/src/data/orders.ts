@@ -1,5 +1,18 @@
 import { getSupabase } from "../lib/supabase";
 import type { CartItem } from "../lib/cart";
+import type { Address } from "./profile";
+
+/** Address details snapshotted onto an order at checkout time. */
+export interface OrderAddress {
+  recipientName: string | null;
+  phone: string | null;
+  line1: string | null;
+  line2: string | null;
+  city: string | null;
+  state: string | null;
+  postalCode: string | null;
+  country: string | null;
+}
 
 export interface Order {
   id: string;
@@ -30,6 +43,20 @@ function mapOrder(row: OrderRow): Order {
   };
 }
 
+/** Narrow a saved Address (or ad-hoc entry) to the snapshot stored on an order. */
+export function toOrderAddress(address: Address | OrderAddress): OrderAddress {
+  return {
+    recipientName: address.recipientName ?? null,
+    phone: address.phone ?? null,
+    line1: address.line1 ?? null,
+    line2: address.line2 ?? null,
+    city: address.city ?? null,
+    state: address.state ?? null,
+    postalCode: address.postalCode ?? null,
+    country: address.country ?? null,
+  };
+}
+
 /**
  * Place an order for the signed-in shopper. RLS ties the row to their auth
  * user, so this requires an active session (enforced both here and in the DB).
@@ -38,6 +65,9 @@ export async function createOrder(input: {
   items: CartItem[];
   total: string;
   note?: string;
+  shippingAddress?: OrderAddress | null;
+  billingAddress?: OrderAddress | null;
+  phone?: string | null;
 }): Promise<Order> {
   const supabase = getSupabase();
   if (!supabase) throw new Error("The store is not configured for ordering.");
@@ -59,6 +89,9 @@ export async function createOrder(input: {
       items: input.items,
       total: input.total,
       note: input.note?.trim() || null,
+      shipping_address: input.shippingAddress ?? null,
+      billing_address: input.billingAddress ?? null,
+      phone: input.phone?.trim() || null,
     })
     .select()
     .single();

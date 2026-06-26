@@ -29,6 +29,8 @@ interface AuthContextValue {
   /** Returns whether the account still needs email confirmation before sign-in. */
   signUp: (input: RegisterInput) => Promise<{ needsConfirmation: boolean }>;
   signOut: () => Promise<void>;
+  /** Update the name stored in auth metadata so the greeting stays in sync. */
+  updateDisplayName: (firstName: string, lastName: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -103,6 +105,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const supabase = getSupabase();
         if (!supabase) return;
         await supabase.auth.signOut();
+      },
+
+      async updateDisplayName(firstName, lastName) {
+        const supabase = getSupabase();
+        if (!supabase) return;
+        const fullName = `${firstName} ${lastName}`.trim();
+        const { error } = await supabase.auth.updateUser({
+          data: {
+            first_name: firstName,
+            last_name: lastName,
+            full_name: fullName,
+          },
+        });
+        // A USER_UPDATED event refreshes the session (and thus displayName).
+        if (error) throw new Error(error.message);
       },
     };
   }, [session, loading]);
