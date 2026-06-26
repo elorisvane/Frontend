@@ -7,7 +7,12 @@ import Link from "next/link";
 // (instant, offline-safe) and, the first time search is opened, swaps in the
 // live catalogue from Supabase so results match the current store.
 import { getPosts, fallbackPosts, type Post } from "../data/posts";
-import { getProducts, fallbackProducts, type Product } from "../data/products";
+import {
+  getProducts,
+  fallbackProducts,
+  productPath,
+  type Product,
+} from "../data/products";
 import { useCart } from "../lib/cart";
 import { useWishlist } from "../lib/wishlist";
 
@@ -96,7 +101,7 @@ export default function Header({
               p.tagline.toLowerCase().includes(q),
           )
           .map((p) => ({
-            href: `/products/${p.slug}`,
+            href: productPath(p),
             title: p.name,
             label: p.category,
           })),

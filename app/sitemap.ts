@@ -1,5 +1,10 @@
 import type { MetadataRoute } from "next";
-import { getProducts, type Product } from "./src/data/products";
+import {
+  getProducts,
+  productPath,
+  categorySlug,
+  type Product,
+} from "./src/data/products";
 import { getPosts, type Post } from "./src/data/posts";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -66,9 +71,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
   ];
 
-  // Map products to sitemap items
+  // Category index pages (/products/<category>), one per distinct category.
+  const categoryRoutes = [
+    ...new Set(products.map((p) => categorySlug(p.category))),
+  ].map((slug) => ({
+    url: `${baseUrl}/products/${slug}`,
+    lastModified: new Date(),
+    changeFrequency: "weekly" as const,
+    priority: 0.7,
+  }));
+
+  // Map products to sitemap items (/products/<category>/<slug>)
   const productRoutes = products.map((product) => ({
-    url: `${baseUrl}/products/${product.slug}`,
+    url: `${baseUrl}${productPath(product)}`,
     lastModified: new Date(),
     changeFrequency: "weekly" as const,
     priority: 0.8,
@@ -92,5 +107,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     };
   });
 
-  return [...staticRoutes, ...productRoutes, ...postRoutes];
+  return [...staticRoutes, ...categoryRoutes, ...productRoutes, ...postRoutes];
 }

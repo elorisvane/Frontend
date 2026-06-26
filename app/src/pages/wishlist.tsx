@@ -5,6 +5,7 @@ import Link from "next/link";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import { useWishlist } from "../lib/wishlist";
+import { productPath } from "../data/products";
 
 export default function Wishlist() {
   const { items, remove } = useWishlist();
@@ -55,7 +56,7 @@ export default function Wishlist() {
                   </svg>
                 </button>
 
-                <Link href={`/products/${item.slug}`} className="block">
+                <Link href={productPath(item)} className="block">
                   <div className="relative aspect-square overflow-hidden bg-neutral-100">
                     {item.image && (
                       <Image
@@ -80,7 +81,7 @@ export default function Wishlist() {
                 </Link>
 
                 <Link
-                  href={`/products/${item.slug}`}
+                  href={productPath(item)}
                   className="mt-4 inline-block border-b border-neutral-900 pb-1 font-sans text-[10px] tracking-[0.3em] text-neutral-900 transition-colors hover:border-gold-600 hover:text-gold-600"
                 >
                   VIEW PIECE

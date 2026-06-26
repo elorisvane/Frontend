@@ -10,7 +10,7 @@ import PersonalDetails from "../components/account/PersonalDetails";
 import AddressBook from "../components/account/AddressBook";
 import { useAuth } from "../lib/auth";
 import { getMyOrders, type Order } from "../data/orders";
-import { getProducts } from "../data/products";
+import { getProducts, productPath, type Product } from "../data/products";
 import { upsertProfile, createAddress } from "../data/profile";
 import { COUNTRIES, postalLabel } from "../lib/countries";
 
@@ -470,7 +470,7 @@ function Dashboard() {
 
 function OrderHistory() {
   const [orders, setOrders] = useState<Order[] | null>(null);
-  const [slugs, setSlugs] = useState<Set<string>>(new Set());
+  const [catalog, setCatalog] = useState<Map<string, Product>>(new Map());
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -479,7 +479,7 @@ function OrderHistory() {
       .then(([myOrders, products]) => {
         if (!active) return;
         setOrders(myOrders);
-        setSlugs(new Set(products.map((p) => p.slug)));
+        setCatalog(new Map(products.map((p) => [p.slug, p])));
       })
       .catch(
         (err) =>
@@ -493,11 +493,13 @@ function OrderHistory() {
     };
   }, []);
 
-  // A line links to its product only when that product still exists, so a
-  // deleted or mistyped slug never navigates to a 404. Mirror getProduct's
-  // variant rule (a trailing "-2" resolves to the base slug).
-  const productExists = (slug: string) =>
-    Boolean(slug) && (slugs.has(slug) || slugs.has(slug.replace(/-\d+$/, "")));
+  // Resolve an order line to its catalogue product (so we can build the
+  // /products/<category>/<slug> link). Mirror getProduct's variant rule (a
+  // trailing "-2" resolves to the base slug). null = the product is gone, so
+  // the line renders un-linked instead of navigating to a 404.
+  const resolveProduct = (slug: string): Product | null =>
+    (slug && (catalog.get(slug) ?? catalog.get(slug.replace(/-\d+$/, "")))) ||
+    null;
 
   if (error) {
     return (
@@ -549,7 +551,7 @@ function OrderHistory() {
           </div>
           <ul className="mt-5 space-y-5">
             {order.items.map((item, i) => {
-              const linkable = productExists(item.slug);
+              const product = resolveProduct(item.slug);
               const body = (
                 <>
                   <div className="relative h-16 w-14 shrink-0 overflow-hidden bg-neutral-100">
@@ -579,9 +581,9 @@ function OrderHistory() {
               );
               return (
                 <li key={`${item.slug}-${item.material}-${i}`}>
-                  {linkable ? (
+                  {product ? (
                     <Link
-                      href={`/products/${item.slug}`}
+                      href={productPath(product)}
                       className="group flex items-center gap-4"
                     >
                       {body}

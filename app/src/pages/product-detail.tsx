@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-import type { Product } from "../data/products";
+import { productPath, categorySlug, type Product } from "../data/products";
 import { useCart } from "../lib/cart";
 import { useWishlist } from "../lib/wishlist";
 
@@ -47,7 +47,14 @@ export default function ProductDetail({ product, related }: ProductDetailProps) 
             CREATIONS
           </Link>
           <span className="mx-2">/</span>
-          <span className="text-neutral-600">{product.category}</span>
+          <Link
+            href={`/products/${categorySlug(product.category)}`}
+            className="transition-colors hover:text-neutral-900"
+          >
+            {product.category}
+          </Link>
+          <span className="mx-2">/</span>
+          <span className="text-neutral-600">{product.name}</span>
         </nav>
 
         <div className="mt-10 grid grid-cols-1 gap-12 md:grid-cols-2 md:gap-16">
@@ -233,7 +240,7 @@ export default function ProductDetail({ product, related }: ProductDetailProps) 
           </h2>
           <div className="mt-12 grid grid-cols-1 gap-x-10 gap-y-12 sm:grid-cols-3">
             {related.map((p) => (
-              <Link key={p.slug} href={`/products/${p.slug}`} className="group">
+              <Link key={p.slug} href={productPath(p)} className="group">
                 <div className="relative aspect-square overflow-hidden bg-neutral-100">
                   <Image
                     src={p.image}

@@ -1,14 +1,19 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
-import ProductDetail from "../../src/pages/product-detail";
-import { getProduct, getProducts } from "../../src/data/products";
+import { notFound, redirect } from "next/navigation";
+import ProductDetail from "../../../src/pages/product-detail";
+import {
+  getProduct,
+  getProducts,
+  categorySlug,
+  productPath,
+} from "../../../src/data/products";
 
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ category: string; slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
   const product = await getProduct(slug);
@@ -19,11 +24,17 @@ export async function generateMetadata({
 export default async function Page({
   params,
 }: {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ category: string; slug: string }>;
 }) {
-  const { slug } = await params;
+  const { category, slug } = await params;
   const product = await getProduct(slug);
   if (!product) notFound();
+
+  // Keep the URL canonical: if the category segment doesn't match the piece's
+  // real category (e.g. an old or hand-typed link), redirect to the right path.
+  if (categorySlug(product.category) !== category) {
+    redirect(productPath(product));
+  }
 
   const all = await getProducts();
   const related = all.filter((p) => p.slug !== product.slug).slice(0, 3);

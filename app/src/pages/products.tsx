@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-import type { Product } from "../data/products";
+import { productPath, type Product } from "../data/products";
 
 // Maps filter checkbox category to product.category in the data
 const getFilterCategory = (prodCategory: string): string => {
@@ -32,9 +32,18 @@ const matchesCollection = (prodName: string, collection: string): boolean => {
   return normName.includes(normColl);
 };
 
-export default function Products({ products }: { products: Product[] }) {
+export default function Products({
+  products,
+  activeCategory,
+}: {
+  products: Product[];
+  /** When set (category route), the grid is pre-filtered to this category. */
+  activeCategory?: string;
+}) {
   // --- STATE ---
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>(
+    activeCategory ? [activeCategory] : [],
+  );
   const [selectedCollections, setSelectedCollections] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState<string>("recommended");
   const [availableOnline, setAvailableOnline] = useState<boolean>(false);
@@ -130,6 +139,13 @@ export default function Products({ products }: { products: Product[] }) {
     setAvailableOnline(false);
     setSortBy("recommended");
   };
+
+  // Keep the grid in sync with the category route (/products/<category>): when
+  // the active category changes, reset the filter to it.
+  useEffect(() => {
+    setSelectedCategories(activeCategory ? [activeCategory] : []);
+    setSelectedCollections([]);
+  }, [activeCategory]);
 
   return (
     <div className="min-h-screen bg-white text-neutral-900 selection:bg-gold-200 selection:text-black">
@@ -477,7 +493,7 @@ export default function Products({ products }: { products: Product[] }) {
                   return (
                     <Link
                       key={item.id}
-                      href={`/products/${item.slug}`}
+                      href={productPath(item)}
                       className="group flex h-full flex-col justify-between text-center"
                     >
                       <div>

@@ -86,3 +86,13 @@ export async function getProduct(slug: string): Promise<Product | undefined> {
   const base = slug.replace(/-\d+$/, "");
   return all.find((p) => p.slug === base);
 }
+
+/** URL-safe category segment, e.g. "NECKLACE" -> "necklace". */
+export function categorySlug(category: string): string {
+  return category.toLowerCase().trim().replace(/\s+/g, "-");
+}
+
+/** Canonical storefront path for a piece: /products/<category>/<slug>. */
+export function productPath(p: { category: string; slug: string }): string {
+  return `/products/${categorySlug(p.category)}/${p.slug}`;
+}
