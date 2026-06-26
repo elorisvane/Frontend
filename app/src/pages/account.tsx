@@ -76,7 +76,10 @@ function AuthPanel() {
         const redirect = new URLSearchParams(window.location.search).get(
           "redirect",
         );
-        if (redirect?.startsWith("/")) router.push(redirect);
+        // Same-origin paths only: `startsWith("/")` alone still allows
+        // "//evil.com" (protocol-relative) and "/\evil.com", which redirect
+        // off-site. Require a single leading slash not followed by / or \.
+        if (redirect && /^\/(?![/\\])/.test(redirect)) router.push(redirect);
       } else {
         const { needsConfirmation } = await signUp({
           firstName: String(data.get("firstName") ?? ""),

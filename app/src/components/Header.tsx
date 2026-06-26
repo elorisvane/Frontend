@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
-// The header search runs on the client, so it indexes the bundled catalogue
-// rather than fetching from Supabase on every keystroke. The seeded database
-// mirrors this list, so results stay in sync.
-import { fallbackPosts as posts } from "../data/posts";
-import { fallbackProducts as products } from "../data/products";
+// The header search runs on the client. It starts from the bundled catalogue
+// (instant, offline-safe) and, the first time search is opened, swaps in the
+// live catalogue from Supabase so results match the current store.
+import { getPosts, fallbackPosts, type Post } from "../data/posts";
+import { getProducts, fallbackProducts, type Product } from "../data/products";
 import { useCart } from "../lib/cart";
 
 const navLinks = [
@@ -35,11 +35,34 @@ export default function Header({
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState("");
+  // Searchable catalogue: bundled fallback until the live data is fetched.
+  const [products, setProducts] = useState<Product[]>(fallbackProducts);
+  const [posts, setPosts] = useState<Post[]>(fallbackPosts);
+  const catalogLoaded = useRef(false);
   // The bag count comes from localStorage, which isn't available during SSR.
   // Render the badge only after mount so the server/client markup matches.
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => setMounted(true), []);
+
+  // Load the live catalogue once, the first time the shopper opens search.
+  useEffect(() => {
+    if (!searchOpen || catalogLoaded.current) return;
+    catalogLoaded.current = true;
+    let active = true;
+    Promise.all([getProducts(), getPosts()])
+      .then(([liveProducts, livePosts]) => {
+        if (!active) return;
+        setProducts(liveProducts);
+        setPosts(livePosts);
+      })
+      .catch(() => {
+        // Keep the bundled fallback if the fetch fails.
+      });
+    return () => {
+      active = false;
+    };
+  }, [searchOpen]);
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 40);

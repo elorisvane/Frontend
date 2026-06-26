@@ -283,6 +283,7 @@ export async function updateAddress(
     .from("addresses")
     .update(patch)
     .eq("id", id)
+    .eq("user_id", userId)
     .select()
     .single();
   if (error) throw new Error(error.message);
@@ -292,7 +293,12 @@ export async function updateAddress(
 export async function deleteAddress(id: string): Promise<void> {
   const supabase = getSupabase();
   if (!supabase) throw new Error(NOT_CONFIGURED);
-  const { error } = await supabase.from("addresses").delete().eq("id", id);
+  const userId = await requireUserId(supabase);
+  const { error } = await supabase
+    .from("addresses")
+    .delete()
+    .eq("id", id)
+    .eq("user_id", userId);
   if (error) throw new Error(error.message);
 }
 
@@ -307,6 +313,7 @@ export async function setDefault(id: string, kind: DefaultKind): Promise<void> {
   const { error } = await supabase
     .from("addresses")
     .update({ [col]: true, updated_at: new Date().toISOString() })
-    .eq("id", id);
+    .eq("id", id)
+    .eq("user_id", userId);
   if (error) throw new Error(error.message);
 }
