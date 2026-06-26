@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import Link from "next/link";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
@@ -207,11 +208,86 @@ function AuthPanel() {
 }
 
 /* -------------------------------------------------------------------------- */
-/* Signed-in: account dashboard + order history                              */
+/* Signed-in: account dashboard (tabbed: details / addresses / orders)        */
 /* -------------------------------------------------------------------------- */
+
+const TABS = [
+  { id: "details", label: "MY DETAILS" },
+  { id: "addresses", label: "ADDRESS BOOK" },
+  { id: "orders", label: "ORDER HISTORY" },
+] as const;
+
+type TabId = (typeof TABS)[number]["id"];
 
 function Dashboard() {
   const { displayName, user, signOut } = useAuth();
+  const [tab, setTab] = useState<TabId>("details");
+  const activeLabel = TABS.find((t) => t.id === tab)!.label;
+
+  return (
+    <>
+      {/* Greeting */}
+      <div className="text-center">
+        <p className="font-sans text-[10px] uppercase tracking-[0.5em] text-neutral-500">
+          My Account
+        </p>
+        <h1 className="mt-4 font-serif text-4xl font-light tracking-[0.15em] md:text-6xl">
+          {displayName ? `Bonjour, ${displayName.split(" ")[0]}` : "Bonjour"}
+        </h1>
+        <p className="mt-6 font-sans text-sm tracking-[0.04em] text-neutral-500">
+          {user?.email}
+        </p>
+        <button
+          onClick={() => signOut()}
+          className="mt-6 font-sans text-[11px] tracking-[0.3em] text-neutral-400 underline underline-offset-4 transition-colors hover:text-neutral-900"
+        >
+          SIGN OUT
+        </button>
+      </div>
+
+      {/* Section nav + active panel */}
+      <div className="mx-auto mt-16 grid max-w-5xl gap-10 lg:grid-cols-[230px_1fr] lg:gap-16">
+        <nav
+          aria-label="Account sections"
+          className="flex gap-8 overflow-x-auto pb-1 lg:sticky lg:top-32 lg:flex-col lg:gap-1 lg:self-start lg:overflow-visible lg:pb-0"
+        >
+          {TABS.map((t) => {
+            const active = t.id === tab;
+            return (
+              <button
+                key={t.id}
+                onClick={() => setTab(t.id)}
+                aria-current={active ? "page" : undefined}
+                className={`whitespace-nowrap border-b-2 pb-3 text-left font-sans text-[11px] tracking-[0.3em] transition-colors lg:border-b-0 lg:border-l-2 lg:py-2.5 lg:pb-2.5 lg:pl-5 ${
+                  active
+                    ? "border-gold-500 text-neutral-900"
+                    : "border-transparent text-neutral-400 hover:text-neutral-900"
+                }`}
+              >
+                {t.label}
+              </button>
+            );
+          })}
+        </nav>
+
+        <div className="min-h-[340px]">
+          <h2 className="border-b border-neutral-200 pb-4 font-sans text-[11px] tracking-[0.35em] text-neutral-700">
+            {activeLabel}
+          </h2>
+          {tab === "details" && <PersonalDetails />}
+          {tab === "addresses" && <AddressBook />}
+          {tab === "orders" && <OrderHistory />}
+        </div>
+      </div>
+    </>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/* Order history (loads only when its tab is opened)                          */
+/* -------------------------------------------------------------------------- */
+
+function OrderHistory() {
   const [orders, setOrders] = useState<Order[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -225,112 +301,94 @@ function Dashboard() {
     };
   }, []);
 
-  return (
-    <>
-      <div className="text-center">
-        <p className="font-sans text-[10px] uppercase tracking-[0.5em] text-neutral-500">
-          My Account
+  if (error) {
+    return (
+      <p className="mt-8 font-sans text-[12px] tracking-[0.08em] text-red-600">
+        {error}
+      </p>
+    );
+  }
+
+  if (orders === null) {
+    return (
+      <p className="mt-8 font-sans text-[11px] tracking-[0.3em] text-neutral-400">
+        LOADING…
+      </p>
+    );
+  }
+
+  if (orders.length === 0) {
+    return (
+      <div className="mt-12 text-center">
+        <p className="font-serif text-2xl font-light tracking-[0.05em] text-neutral-700">
+          No orders yet
         </p>
-        <h1 className="mt-4 font-serif text-4xl font-light tracking-[0.15em] md:text-6xl">
-          {displayName ? `Bonjour, ${displayName.split(" ")[0]}` : "Bonjour"}
-        </h1>
-        <p className="mx-auto mt-6 max-w-xl font-sans text-sm leading-loose tracking-[0.04em] text-neutral-500">
-          {user?.email}
-        </p>
-        <button
-          onClick={() => signOut()}
-          className="mt-8 font-sans text-[11px] tracking-[0.3em] text-neutral-400 underline underline-offset-4 transition-colors hover:text-neutral-900"
+        <Link
+          href="/products"
+          className="mt-8 inline-block border border-neutral-900 px-10 py-3 font-sans text-[11px] tracking-[0.3em] text-neutral-900 transition-colors hover:bg-neutral-900 hover:text-white"
         >
-          SIGN OUT
-        </button>
+          DISCOVER THE CREATIONS
+        </Link>
       </div>
+    );
+  }
 
-      <div className="mx-auto mt-20 max-w-3xl space-y-20">
-        <section>
-          <h2 className="border-b border-neutral-200 pb-4 font-sans text-[11px] tracking-[0.35em] text-neutral-700">
-            MY DETAILS
-          </h2>
-          <PersonalDetails />
-        </section>
-
-        <section>
-          <h2 className="border-b border-neutral-200 pb-4 font-sans text-[11px] tracking-[0.35em] text-neutral-700">
-            ADDRESS BOOK
-          </h2>
-          <AddressBook />
-        </section>
-
-        <section>
-        <h2 className="border-b border-neutral-200 pb-4 font-sans text-[11px] tracking-[0.35em] text-neutral-700">
-          ORDER HISTORY
-        </h2>
-
-        {error && (
-          <p className="mt-6 font-sans text-[12px] tracking-[0.08em] text-red-600">
-            {error}
-          </p>
-        )}
-
-        {orders === null && !error ? (
-          <p className="mt-8 font-sans text-[11px] tracking-[0.3em] text-neutral-400">
-            LOADING…
-          </p>
-        ) : orders && orders.length === 0 ? (
-          <div className="mt-10 text-center">
-            <p className="font-serif text-2xl font-light tracking-[0.05em] text-neutral-700">
-              No orders yet
-            </p>
-            <Link
-              href="/products"
-              className="mt-8 inline-block border border-neutral-900 px-10 py-3 font-sans text-[11px] tracking-[0.3em] text-neutral-900 transition-colors hover:bg-neutral-900 hover:text-white"
-            >
-              DISCOVER THE CREATIONS
-            </Link>
+  return (
+    <ul className="mt-2 divide-y divide-neutral-200">
+      {orders.map((order) => (
+        <li key={order.id} className="py-7">
+          <div className="flex items-baseline justify-between">
+            <span className="font-sans text-[11px] tracking-[0.2em] text-neutral-400">
+              {new Date(order.createdAt).toLocaleDateString("en-GB", {
+                day: "numeric",
+                month: "long",
+                year: "numeric",
+              })}
+            </span>
+            <span className="font-sans text-[10px] uppercase tracking-[0.3em] text-gold-600">
+              {order.status}
+            </span>
           </div>
-        ) : (
-          <ul className="mt-6 divide-y divide-neutral-200">
-            {orders?.map((order) => (
-              <li key={order.id} className="py-7">
-                <div className="flex items-baseline justify-between">
-                  <span className="font-sans text-[11px] tracking-[0.2em] text-neutral-400">
-                    {new Date(order.createdAt).toLocaleDateString("en-GB", {
-                      day: "numeric",
-                      month: "long",
-                      year: "numeric",
-                    })}
+          <ul className="mt-4 space-y-4">
+            {order.items.map((item, i) => (
+              <li key={`${item.slug}-${item.material}-${i}`}>
+                <Link
+                  href={`/products/${item.slug}`}
+                  className="group flex items-center gap-4"
+                >
+                  <div className="relative aspect-[4/5] w-14 shrink-0 overflow-hidden bg-neutral-100">
+                    {item.image && (
+                      <Image
+                        src={item.image}
+                        alt={item.name}
+                        fill
+                        sizes="56px"
+                        className="object-cover transition-transform duration-500 group-hover:scale-105"
+                      />
+                    )}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate font-serif text-[15px] font-light tracking-[0.03em] text-neutral-800 transition-colors group-hover:text-gold-600">
+                      {item.name}
+                    </p>
+                    <p className="mt-1 font-sans text-[11px] tracking-[0.1em] text-neutral-400">
+                      {item.material ? `${item.material} · ` : ""}Qty {item.quantity}
+                    </p>
+                  </div>
+                  <span className="shrink-0 font-sans text-[13px] tracking-[0.04em] text-neutral-600">
+                    {item.price}
                   </span>
-                  <span className="font-sans text-[10px] uppercase tracking-[0.3em] text-gold-600">
-                    {order.status}
-                  </span>
-                </div>
-                <ul className="mt-3 space-y-1">
-                  {order.items.map((item, i) => (
-                    <li
-                      key={`${item.slug}-${item.material}-${i}`}
-                      className="flex justify-between font-sans text-[13px] tracking-[0.04em] text-neutral-700"
-                    >
-                      <span>
-                        {item.name}
-                        <span className="text-neutral-400">
-                          {" "}
-                          · {item.material} × {item.quantity}
-                        </span>
-                      </span>
-                      <span className="text-neutral-500">{item.price}</span>
-                    </li>
-                  ))}
-                </ul>
-                {order.total && (
-                  <p className="mt-3 text-right font-serif text-lg font-light tracking-[0.05em] text-neutral-800">
-                    {order.total}
-                  </p>
-                )}
+                </Link>
               </li>
             ))}
           </ul>
-        )}
-        </section>
-      </div>
-    </>
+          {order.total && (
+            <p className="mt-3 text-right font-serif text-lg font-light tracking-[0.05em] text-neutral-800">
+              {order.total}
+            </p>
+          )}
+        </li>
+      ))}
+    </ul>
   );
 }
