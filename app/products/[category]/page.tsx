@@ -6,6 +6,7 @@ import {
   categorySlug,
   productPath,
 } from "../../src/data/products";
+import { getProductsMedia } from "../../src/data/home";
 
 export const dynamic = "force-dynamic";
 
@@ -32,7 +33,10 @@ export default async function CategoryPage({
   params: Promise<{ category: string }>;
 }) {
   const { category } = await params;
-  const products = await getProducts();
+  const [products, media] = await Promise.all([
+    getProducts(),
+    getProductsMedia(),
+  ]);
 
   // Back-compat: an old single-segment product URL (/products/<slug>) lands
   // here — send it on to its canonical /products/<category>/<slug> path.
@@ -43,5 +47,12 @@ export default async function CategoryPage({
     ?.category;
   if (!label) notFound();
 
-  return <Products products={products} activeCategory={label} />;
+  return (
+    <Products
+      products={products}
+      activeCategory={label}
+      heroMedia={media.hero}
+      gridMedia={media.grid}
+    />
+  );
 }

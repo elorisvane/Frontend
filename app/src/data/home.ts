@@ -56,9 +56,15 @@ export const homeMediaDefaults: HomeMediaContent = {
   gallery: defaultGallery,
 };
 
+type Placement =
+  | "campaign"
+  | "gallery"
+  | "products_hero"
+  | "products_grid";
+
 interface HomeMediaRow {
   id: string;
-  placement: "campaign" | "gallery" | null;
+  placement: Placement | null;
   media_type: MediaType | null;
   src: string;
   poster: string | null;
@@ -118,5 +124,59 @@ export async function getHomeMedia(): Promise<HomeMediaContent> {
     };
   } catch {
     return homeMediaDefaults;
+  }
+}
+
+/** An admin-managed image/video slot (products page hero + lifestyle banner). */
+export interface MediaSlot {
+  mediaType: MediaType;
+  /** Path relative to /public, or a full URL. */
+  src: string;
+  poster?: string;
+  alt: string;
+  title?: string;
+  subtitle?: string;
+  linkUrl?: string;
+}
+
+export interface ProductsMedia {
+  hero: MediaSlot | null;
+  grid: MediaSlot | null;
+}
+
+/**
+ * The two media slots for the products page (top hero banner + in-grid
+ * lifestyle banner), or null per slot when the admin hasn't set one — the page
+ * then falls back to its bundled artwork.
+ */
+export async function getProductsMedia(): Promise<ProductsMedia> {
+  const supabase = getSupabase();
+  if (!supabase) return { hero: null, grid: null };
+  try {
+    const { data, error } = await supabase
+      .from("home_media")
+      .select("*")
+      .in("placement", ["products_hero", "products_grid"])
+      .order("sort_order", { ascending: true });
+    if (error || !data) return { hero: null, grid: null };
+    const rows = data as HomeMediaRow[];
+
+    const pick = (placement: Placement): MediaSlot | null => {
+      const r = rows.find((x) => x.placement === placement);
+      if (!r) return null;
+      return {
+        mediaType: r.media_type ?? "image",
+        src: r.src,
+        poster: r.poster ?? undefined,
+        alt: r.alt ?? r.title ?? "",
+        title: r.title ?? undefined,
+        subtitle: r.subtitle ?? undefined,
+        linkUrl: r.link_url ?? undefined,
+      };
+    };
+
+    return { hero: pick("products_hero"), grid: pick("products_grid") };
+  } catch {
+    return { hero: null, grid: null };
   }
 }

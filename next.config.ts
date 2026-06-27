@@ -2,6 +2,12 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   images: {
+    // Only optimize images on Vercel. Some local/dev networks reach Supabase's
+    // CDN via NAT64/DNS64 (IPv4-mapped IPv6, e.g. "64:ff9b::…"), which Next's
+    // image optimizer rejects as a "private IP" — so off Vercel we serve images
+    // directly (unoptimized) to avoid that false positive. Production (Vercel)
+    // keeps the AVIF/WebP optimization below.
+    unoptimized: !process.env.VERCEL,
     // Prefer AVIF (sharper at a given file size than WebP) and fall back to
     // WebP — crisper jewellery photos for the same bandwidth.
     formats: ["image/avif", "image/webp"],

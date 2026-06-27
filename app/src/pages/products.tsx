@@ -6,6 +6,8 @@ import Link from "next/link";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import { productPath, type Product } from "../data/products";
+import { MediaFill } from "../components/MediaFill";
+import type { MediaSlot } from "../data/home";
 
 // Maps filter checkbox category to product.category in the data
 const getFilterCategory = (prodCategory: string): string => {
@@ -35,10 +37,16 @@ const matchesCollection = (prodName: string, collection: string): boolean => {
 export default function Products({
   products,
   activeCategory,
+  heroMedia,
+  gridMedia,
 }: {
   products: Product[];
   /** When set (category route), the grid is pre-filtered to this category. */
   activeCategory?: string;
+  /** Admin-managed top hero banner (image or video); falls back to bundled art. */
+  heroMedia?: MediaSlot | null;
+  /** Admin-managed in-grid lifestyle banner (image or video). */
+  gridMedia?: MediaSlot | null;
 }) {
   // --- STATE ---
   const [selectedCategories, setSelectedCategories] = useState<string[]>(
@@ -154,14 +162,13 @@ export default function Products({
 
       {/* --- HERO CAMPAIGN BANNER --- */}
       <div className="relative mt-[53px] h-[300px] w-full overflow-hidden bg-neutral-100 md:h-[522px]">
-        <Image
-          src="/assets/1 (1).png"
+        <MediaFill
+          media={heroMedia}
+          fallbackSrc="/assets/1 (1).png"
           alt="Eloris Creations"
-          fill
           priority
-          quality={90}
           sizes="100vw"
-          className="object-cover object-center"
+          className="object-center"
         />
       </div>
 
@@ -465,23 +472,22 @@ export default function Products({
                             : "sm:row-span-2 lg:col-start-3 lg:col-span-2"
                         }`}
                       >
-                        <Image
-                          src="/assets/1 (1).png"
+                        <MediaFill
+                          media={gridMedia}
+                          fallbackSrc="/assets/1 (1).png"
                           alt="Maison Eloris Campaign"
-                          fill
-                          quality={90}
                           sizes="(max-width: 640px) 100vw, 50vw"
-                          className="object-cover transition-transform duration-[1.2s] ease-out group-hover:scale-105"
+                          className="transition-transform duration-[1.2s] ease-out group-hover:scale-105"
                         />
                         {/* Elegant overlay scrim */}
                         <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/10 to-transparent pointer-events-none" />
 
                         <div className="relative z-10 p-8 text-white">
                           <p className="font-sans text-[10px] uppercase tracking-[0.4em] text-white/90">
-                            The Maison
+                            {gridMedia?.subtitle || "The Maison"}
                           </p>
                           <h3 className="mt-3 font-serif text-3xl font-light tracking-[0.05em] leading-snug">
-                            Savoir-Faire &amp; Artistry
+                            {gridMedia?.title || "Savoir-Faire & Artistry"}
                           </h3>
                           <div className="mt-4 h-[1px] w-12 bg-white/60" />
                         </div>
