@@ -94,6 +94,7 @@ function AuthPanel() {
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [country, setCountry] = useState("US");
+  const [showPassword, setShowPassword] = useState(false);
 
   function switchMode(next: Mode) {
     setMode(next);
@@ -300,17 +301,56 @@ function AuthPanel() {
             placeholder="Email address"
             className={inputClass}
           />
-          <input
-            required
-            name="password"
-            type="password"
-            minLength={6}
-            autoComplete={
-              mode === "signin" ? "current-password" : "new-password"
-            }
-            placeholder="Password"
-            className={inputClass}
-          />
+          <div className="relative">
+            <input
+              required
+              name="password"
+              type={showPassword ? "text" : "password"}
+              minLength={6}
+              autoComplete={
+                mode === "signin" ? "current-password" : "new-password"
+              }
+              placeholder="Password"
+              className={`${inputClass} pr-10`}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword((s) => !s)}
+              aria-label={showPassword ? "Hide password" : "Show password"}
+              aria-pressed={showPassword}
+              className="absolute right-0 top-1/2 -translate-y-1/2 text-neutral-400 transition-colors hover:text-neutral-900"
+            >
+              {showPassword ? (
+                <svg
+                  className="h-5 w-5"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.4"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M3 3l18 18" />
+                  <path d="M10.6 5.1A10.8 10.8 0 0 1 12 5c6.4 0 10 7 10 7a17.6 17.6 0 0 1-3 3.9" />
+                  <path d="M6.6 6.6A17.2 17.2 0 0 0 2 12s3.6 7 10 7a10.3 10.3 0 0 0 4.2-.9" />
+                  <path d="M9.9 9.9a3 3 0 0 0 4.2 4.2" />
+                </svg>
+              ) : (
+                <svg
+                  className="h-5 w-5"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.4"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z" />
+                  <circle cx="12" cy="12" r="3" />
+                </svg>
+              )}
+            </button>
+          </div>
 
           {mode === "register" && (
             <div className="space-y-7 border-t border-neutral-200 pt-7">
