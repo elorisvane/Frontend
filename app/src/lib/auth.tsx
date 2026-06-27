@@ -33,6 +33,12 @@ interface AuthContextValue {
   signOut: () => Promise<void>;
   /** Update the name stored in auth metadata so the greeting stays in sync. */
   updateDisplayName: (firstName: string, lastName: string) => Promise<void>;
+  /** Email the shopper a password-reset link. */
+  resetPassword: (email: string) => Promise<void>;
+  /** Set a new password (used after following a reset link, or while signed in). */
+  updatePassword: (newPassword: string) => Promise<void>;
+  /** True after the shopper follows a password-reset link — show the new-password form. */
+  recovery: boolean;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -45,6 +51,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Start "loading" only when Supabase is actually configured; otherwise there
   // is no session to resolve, so we render the signed-out UI immediately.
   const [loading, setLoading] = useState(() => getSupabase() !== null);
+  // True once the shopper arrives via a password-reset email link.
+  const [recovery, setRecovery] = useState(false);
 
   useEffect(() => {
     const supabase = getSupabase();
@@ -55,8 +63,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(false);
     });
 
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, next) => {
+    const { data: sub } = supabase.auth.onAuthStateChange((event, next) => {
       setSession(next);
+      if (event === "PASSWORD_RECOVERY") setRecovery(true);
     });
 
     return () => sub.subscription.unsubscribe();
@@ -140,8 +149,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // A USER_UPDATED event refreshes the session (and thus displayName).
         if (error) throw new Error(error.message);
       },
+
+      async resetPassword(email) {
+        const supabase = getSupabase();
+        if (!supabase) throw new Error(NOT_CONFIGURED);
+        // The link in the email returns the shopper to /account, where the
+        // PASSWORD_RECOVERY event flips `recovery` on and shows the reset form.
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: `${window.location.origin}/account`,
+        });
+        if (error) throw new Error(error.message);
+      },
+
+      async updatePassword(newPassword) {
+        const supabase = getSupabase();
+        if (!supabase) throw new Error(NOT_CONFIGURED);
+        const { error } = await supabase.auth.updateUser({
+          password: newPassword,
+        });
+        if (error) throw new Error(error.message);
+        setRecovery(false);
+      },
+
+      recovery,
     };
-  }, [session, loading]);
+  }, [session, loading, recovery]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
