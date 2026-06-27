@@ -19,6 +19,231 @@ const inputClass =
 
 type Mode = "signin" | "register";
 
+/* -------------------------------------------------------------------------- */
+/* Forgot password — request a reset link                                     */
+/* -------------------------------------------------------------------------- */
+
+function ForgotPasswordForm({ onBack }: { onBack: () => void }) {
+  const { resetPassword } = useAuth();
+  const [email, setEmail] = useState("");
+  const [pending, setPending] = useState(false);
+  const [sent, setSent] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (pending) return;
+    setError(null);
+    setPending(true);
+    try {
+      await resetPassword(email.trim());
+      setSent(true);
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Could not send the reset email.",
+      );
+    } finally {
+      setPending(false);
+    }
+  }
+
+  return (
+    <div>
+      <div className="text-center">
+        <p className="font-sans text-[11px] tracking-[0.3em] text-neutral-900">
+          RESET YOUR PASSWORD
+        </p>
+        <p className="mx-auto mt-4 max-w-sm font-sans text-[13px] leading-relaxed tracking-[0.04em] text-neutral-500">
+          Enter your account email and we’ll send you a link to choose a new
+          password.
+        </p>
+      </div>
+
+      {sent ? (
+        <div className="mt-10 text-center">
+          <p className="font-sans text-[13px] leading-relaxed tracking-[0.06em] text-gold-600">
+            We’ve emailed a reset link to {email.trim()}. Check your inbox (and
+            spam).
+          </p>
+          <button
+            type="button"
+            onClick={onBack}
+            className="mt-8 font-sans text-[11px] tracking-[0.3em] text-neutral-400 underline underline-offset-4 transition-colors hover:text-neutral-900"
+          >
+            BACK TO SIGN IN
+          </button>
+        </div>
+      ) : (
+        <form onSubmit={handleSubmit} className="mt-10 space-y-7">
+          <input
+            required
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            autoComplete="email"
+            placeholder="Email address"
+            autoFocus
+            className={inputClass}
+          />
+          {error && (
+            <p className="font-sans text-[12px] tracking-[0.08em] text-red-600">
+              {error}
+            </p>
+          )}
+          <button
+            type="submit"
+            disabled={pending}
+            className="w-full border border-neutral-900 px-10 py-3 font-sans text-[11px] tracking-[0.3em] text-neutral-900 transition-colors hover:bg-neutral-900 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {pending ? "SENDING…" : "SEND RESET LINK"}
+          </button>
+          <button
+            type="button"
+            onClick={onBack}
+            className="block w-full text-center font-sans text-[11px] tracking-[0.2em] text-neutral-400 transition-colors hover:text-neutral-900"
+          >
+            BACK TO SIGN IN
+          </button>
+        </form>
+      )}
+    </div>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/* Password reset (after following the email link)                            */
+/* -------------------------------------------------------------------------- */
+
+function EyeButton({
+  shown,
+  onToggle,
+}: {
+  shown: boolean;
+  onToggle: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      aria-label={shown ? "Hide password" : "Show password"}
+      aria-pressed={shown}
+      className="absolute right-0 top-1/2 -translate-y-1/2 text-neutral-400 transition-colors hover:text-neutral-900"
+    >
+      {shown ? (
+        <svg
+          className="h-5 w-5"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.4"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M3 3l18 18" />
+          <path d="M10.6 5.1A10.8 10.8 0 0 1 12 5c6.4 0 10 7 10 7a17.6 17.6 0 0 1-3 3.9" />
+          <path d="M6.6 6.6A17.2 17.2 0 0 0 2 12s3.6 7 10 7a10.3 10.3 0 0 0 4.2-.9" />
+          <path d="M9.9 9.9a3 3 0 0 0 4.2 4.2" />
+        </svg>
+      ) : (
+        <svg
+          className="h-5 w-5"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.4"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z" />
+          <circle cx="12" cy="12" r="3" />
+        </svg>
+      )}
+    </button>
+  );
+}
+
+function ResetPasswordPanel() {
+  const { updatePassword } = useAuth();
+  const [password, setPassword] = useState("");
+  const [show, setShow] = useState(false);
+  const [pending, setPending] = useState(false);
+  const [done, setDone] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (pending) return;
+    if (password.length < 6) {
+      setError("Use at least 6 characters.");
+      return;
+    }
+    setError(null);
+    setPending(true);
+    try {
+      await updatePassword(password);
+      setDone(true);
+      // `recovery` flips to false, so the page swaps to the signed-in dashboard.
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Could not update your password.",
+      );
+      setPending(false);
+    }
+  }
+
+  return (
+    <>
+      <div className="text-center">
+        <p className="font-sans text-[10px] uppercase tracking-[0.5em] text-neutral-500">
+          My Account
+        </p>
+        <h1 className="mt-4 font-serif text-4xl font-light tracking-[0.15em] md:text-6xl">
+          Set a New Password
+        </h1>
+        <p className="mx-auto mt-6 max-w-xl font-sans text-sm leading-loose tracking-[0.04em] text-neutral-500">
+          Choose a new password for your ÉLORIS account.
+        </p>
+      </div>
+
+      <div className="mx-auto mt-16 max-w-md">
+        {done ? (
+          <p className="text-center font-sans text-[13px] leading-relaxed tracking-[0.06em] text-gold-600">
+            Your password has been updated. You’re now signed in.
+          </p>
+        ) : (
+          <form onSubmit={handleSubmit} className="space-y-7">
+            <div className="relative">
+              <input
+                required
+                type={show ? "text" : "password"}
+                minLength={6}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                autoComplete="new-password"
+                placeholder="New password"
+                className={`${inputClass} pr-10`}
+              />
+              <EyeButton shown={show} onToggle={() => setShow((s) => !s)} />
+            </div>
+            {error && (
+              <p className="font-sans text-[12px] tracking-[0.08em] text-red-600">
+                {error}
+              </p>
+            )}
+            <button
+              type="submit"
+              disabled={pending}
+              className="w-full border border-neutral-900 px-10 py-3 font-sans text-[11px] tracking-[0.3em] text-neutral-900 transition-colors hover:bg-neutral-900 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {pending ? "UPDATING…" : "UPDATE PASSWORD"}
+            </button>
+          </form>
+        )}
+      </div>
+    </>
+  );
+}
+
 export default function Account() {
   const { user, loading, recovery } = useAuth();
 
@@ -448,231 +673,6 @@ function AuthPanel() {
           </button>
         </form>
           </>
-        )}
-      </div>
-    </>
-  );
-}
-
-/* -------------------------------------------------------------------------- */
-/* Forgot password — request a reset link                                     */
-/* -------------------------------------------------------------------------- */
-
-function ForgotPasswordForm({ onBack }: { onBack: () => void }) {
-  const { resetPassword } = useAuth();
-  const [email, setEmail] = useState("");
-  const [pending, setPending] = useState(false);
-  const [sent, setSent] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    if (pending) return;
-    setError(null);
-    setPending(true);
-    try {
-      await resetPassword(email.trim());
-      setSent(true);
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Could not send the reset email.",
-      );
-    } finally {
-      setPending(false);
-    }
-  }
-
-  return (
-    <div>
-      <div className="text-center">
-        <p className="font-sans text-[11px] tracking-[0.3em] text-neutral-900">
-          RESET YOUR PASSWORD
-        </p>
-        <p className="mx-auto mt-4 max-w-sm font-sans text-[13px] leading-relaxed tracking-[0.04em] text-neutral-500">
-          Enter your account email and we’ll send you a link to choose a new
-          password.
-        </p>
-      </div>
-
-      {sent ? (
-        <div className="mt-10 text-center">
-          <p className="font-sans text-[13px] leading-relaxed tracking-[0.06em] text-gold-600">
-            We’ve emailed a reset link to {email.trim()}. Check your inbox (and
-            spam).
-          </p>
-          <button
-            type="button"
-            onClick={onBack}
-            className="mt-8 font-sans text-[11px] tracking-[0.3em] text-neutral-400 underline underline-offset-4 transition-colors hover:text-neutral-900"
-          >
-            BACK TO SIGN IN
-          </button>
-        </div>
-      ) : (
-        <form onSubmit={handleSubmit} className="mt-10 space-y-7">
-          <input
-            required
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            autoComplete="email"
-            placeholder="Email address"
-            autoFocus
-            className={inputClass}
-          />
-          {error && (
-            <p className="font-sans text-[12px] tracking-[0.08em] text-red-600">
-              {error}
-            </p>
-          )}
-          <button
-            type="submit"
-            disabled={pending}
-            className="w-full border border-neutral-900 px-10 py-3 font-sans text-[11px] tracking-[0.3em] text-neutral-900 transition-colors hover:bg-neutral-900 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            {pending ? "SENDING…" : "SEND RESET LINK"}
-          </button>
-          <button
-            type="button"
-            onClick={onBack}
-            className="block w-full text-center font-sans text-[11px] tracking-[0.2em] text-neutral-400 transition-colors hover:text-neutral-900"
-          >
-            BACK TO SIGN IN
-          </button>
-        </form>
-      )}
-    </div>
-  );
-}
-
-/* -------------------------------------------------------------------------- */
-/* Password reset (after following the email link)                            */
-/* -------------------------------------------------------------------------- */
-
-function EyeButton({
-  shown,
-  onToggle,
-}: {
-  shown: boolean;
-  onToggle: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onToggle}
-      aria-label={shown ? "Hide password" : "Show password"}
-      aria-pressed={shown}
-      className="absolute right-0 top-1/2 -translate-y-1/2 text-neutral-400 transition-colors hover:text-neutral-900"
-    >
-      {shown ? (
-        <svg
-          className="h-5 w-5"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.4"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <path d="M3 3l18 18" />
-          <path d="M10.6 5.1A10.8 10.8 0 0 1 12 5c6.4 0 10 7 10 7a17.6 17.6 0 0 1-3 3.9" />
-          <path d="M6.6 6.6A17.2 17.2 0 0 0 2 12s3.6 7 10 7a10.3 10.3 0 0 0 4.2-.9" />
-          <path d="M9.9 9.9a3 3 0 0 0 4.2 4.2" />
-        </svg>
-      ) : (
-        <svg
-          className="h-5 w-5"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.4"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z" />
-          <circle cx="12" cy="12" r="3" />
-        </svg>
-      )}
-    </button>
-  );
-}
-
-function ResetPasswordPanel() {
-  const { updatePassword } = useAuth();
-  const [password, setPassword] = useState("");
-  const [show, setShow] = useState(false);
-  const [pending, setPending] = useState(false);
-  const [done, setDone] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    if (pending) return;
-    if (password.length < 6) {
-      setError("Use at least 6 characters.");
-      return;
-    }
-    setError(null);
-    setPending(true);
-    try {
-      await updatePassword(password);
-      setDone(true);
-      // `recovery` flips to false, so the page swaps to the signed-in dashboard.
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Could not update your password.",
-      );
-      setPending(false);
-    }
-  }
-
-  return (
-    <>
-      <div className="text-center">
-        <p className="font-sans text-[10px] uppercase tracking-[0.5em] text-neutral-500">
-          My Account
-        </p>
-        <h1 className="mt-4 font-serif text-4xl font-light tracking-[0.15em] md:text-6xl">
-          Set a New Password
-        </h1>
-        <p className="mx-auto mt-6 max-w-xl font-sans text-sm leading-loose tracking-[0.04em] text-neutral-500">
-          Choose a new password for your ÉLORIS account.
-        </p>
-      </div>
-
-      <div className="mx-auto mt-16 max-w-md">
-        {done ? (
-          <p className="text-center font-sans text-[13px] leading-relaxed tracking-[0.06em] text-gold-600">
-            Your password has been updated. You’re now signed in.
-          </p>
-        ) : (
-          <form onSubmit={handleSubmit} className="space-y-7">
-            <div className="relative">
-              <input
-                required
-                type={show ? "text" : "password"}
-                minLength={6}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                autoComplete="new-password"
-                placeholder="New password"
-                className={`${inputClass} pr-10`}
-              />
-              <EyeButton shown={show} onToggle={() => setShow((s) => !s)} />
-            </div>
-            {error && (
-              <p className="font-sans text-[12px] tracking-[0.08em] text-red-600">
-                {error}
-              </p>
-            )}
-            <button
-              type="submit"
-              disabled={pending}
-              className="w-full border border-neutral-900 px-10 py-3 font-sans text-[11px] tracking-[0.3em] text-neutral-900 transition-colors hover:bg-neutral-900 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {pending ? "UPDATING…" : "UPDATE PASSWORD"}
-            </button>
-          </form>
         )}
       </div>
     </>

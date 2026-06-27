@@ -12,12 +12,14 @@ const labelClass =
 const TITLES = ["", "Mr", "Mrs", "Ms", "Mx", "Dr"];
 
 export default function PersonalDetails() {
-  const { user, updateDisplayName } = useAuth();
+  const { user, updateDisplayName, resetPassword } = useAuth();
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
+  const [resetting, setResetting] = useState(false);
+  const [resetSent, setResetSent] = useState(false);
 
   const [title, setTitle] = useState("");
   const [firstName, setFirstName] = useState("");
@@ -74,6 +76,22 @@ export default function PersonalDetails() {
       setError(err instanceof Error ? err.message : "Could not save your details.");
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function handleResetPassword() {
+    if (!user?.email) return;
+    setError(null);
+    setSaved(false);
+    setResetting(true);
+    setResetSent(false);
+    try {
+      await resetPassword(user.email);
+      setResetSent(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not send reset link.");
+    } finally {
+      setResetting(false);
     }
   }
 
@@ -168,14 +186,30 @@ export default function PersonalDetails() {
           Your details have been saved.
         </p>
       )}
+      {resetSent && (
+        <p className="font-sans text-[12px] tracking-[0.1em] text-gold-600">
+          A password reset link has been sent to your email.
+        </p>
+      )}
 
-      <button
-        type="submit"
-        disabled={saving}
-        className="border border-neutral-900 px-10 py-3 font-sans text-[11px] tracking-[0.3em] text-neutral-900 transition-colors hover:bg-neutral-900 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
-      >
-        {saving ? "SAVING…" : "SAVE DETAILS"}
-      </button>
+      <div className="flex flex-col sm:flex-row sm:items-center gap-6">
+        <button
+          type="submit"
+          disabled={saving}
+          className="border border-neutral-900 px-10 py-3 font-sans text-[11px] tracking-[0.3em] text-neutral-900 transition-colors hover:bg-neutral-900 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {saving ? "SAVING…" : "SAVE DETAILS"}
+        </button>
+
+        <button
+          type="button"
+          onClick={handleResetPassword}
+          disabled={resetting}
+          className="font-sans text-[11px] tracking-[0.08em] text-neutral-400 underline underline-offset-4 transition-colors hover:text-neutral-900 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {resetting ? "SENDING LINK…" : "RESET YOUR PASSWORD"}
+        </button>
+      </div>
     </form>
   );
 }
