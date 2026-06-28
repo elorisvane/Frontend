@@ -3,9 +3,11 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import { productPath, categorySlug, type Product } from "../data/products";
+import { useCart } from "../lib/cart";
 import { useWishlist } from "../lib/wishlist";
 import ProductReviews from "../components/ProductReviews";
 
@@ -71,11 +73,14 @@ export default function ProductDetail({
   related,
 }: ProductDetailProps) {
   const { has, toggle } = useWishlist();
+  const { add } = useCart();
+  const router = useRouter();
   const saved = has(product.slug);
   const gallery = (
     product.images?.length ? product.images : [product.image]
   ).filter(Boolean);
   const [activeIndex, setActiveIndex] = useState(0);
+  const [addedToBag, setAddedToBag] = useState(false);
 
   // Auto-advance the hero gallery through the jewelry photos/videos.
   useEffect(() => {
@@ -243,12 +248,26 @@ export default function ProductDetail({
 
             {/* Actions */}
             <div className="mt-10 flex flex-col gap-3">
-              <Link
-                href="/contact"
-                className="bg-neutral-900 px-10 py-4 text-center font-sans text-[11px] tracking-[0.3em] text-white transition-colors hover:bg-neutral-700"
+              <button
+                type="button"
+                onClick={() => {
+                  add(
+                    {
+                      slug: product.slug,
+                      name: product.name,
+                      image: product.image,
+                      price: product.price,
+                      material: product.materials?.[0] ?? "",
+                    },
+                    1,
+                  );
+                  setAddedToBag(true);
+                  router.push("/bag");
+                }}
+                className="bg-neutral-900 px-10 py-4 text-center font-sans text-[11px] tracking-[0.3em] text-white transition-colors hover:bg-neutral-700 disabled:opacity-60"
               >
-                CONTACT US TO MAKE A PURCHASE
-              </Link>
+                {addedToBag ? "ADDED — VIEW BAG" : "ADD TO BAG"}
+              </button>
               <Link
                 href="/contact"
                 className="border border-neutral-900 px-10 py-4 text-center font-sans text-[11px] tracking-[0.3em] text-neutral-900 transition-colors hover:bg-neutral-900 hover:text-white"
