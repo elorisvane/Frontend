@@ -6,7 +6,6 @@ import Link from "next/link";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import { productPath, categorySlug, type Product } from "../data/products";
-import { useCart } from "../lib/cart";
 import { useWishlist } from "../lib/wishlist";
 import ProductReviews from "../components/ProductReviews";
 
@@ -15,36 +14,54 @@ interface ProductDetailProps {
   related: Product[];
 }
 
-export default function ProductDetail({ product, related }: ProductDetailProps) {
-  const { add } = useCart();
+export default function ProductDetail({
+  product,
+  related,
+}: ProductDetailProps) {
   const { has, toggle } = useWishlist();
   const saved = has(product.slug);
   const gallery = (
     product.images?.length ? product.images : [product.image]
   ).filter(Boolean);
-  const [material, setMaterial] = useState(product.materials[0] ?? "");
   const [activeImage, setActiveImage] = useState(gallery[0] ?? product.image);
-  const [added, setAdded] = useState(false);
 
-  function handleAddToBag() {
-    add({
-      slug: product.slug,
-      name: product.name,
-      image: product.image,
-      price: product.price,
-      material,
-    });
-    setAdded(true);
-  }
+  // The editorial trio reuses the product's own gallery photos.
+  const editorial = gallery.slice(0, 3);
+  const trioColsClass =
+    editorial.length >= 3
+      ? "md:grid-cols-3"
+      : editorial.length === 2
+        ? "md:grid-cols-2"
+        : "md:grid-cols-1";
+
+  // Service imagery reuses the campaign artwork in /public/assets;
+  // admin-managed media slots can replace these later.
+  const services = [
+    {
+      title: "Book an appointment",
+      text: "Whether in person or online, enjoy a personalised shopping experience at ÉLORIS.",
+      image: "/assets/1 (6).png",
+      href: "/contact",
+    },
+    {
+      title: "Expert advice",
+      text: "The perfect advice is always at hand with our client care advisors.",
+      image: "/assets/1 (7).png",
+      href: "/contact",
+    },
+  ];
 
   return (
     <div className="min-h-screen bg-white text-neutral-900 selection:bg-gold-200 selection:text-black">
       <Header light />
 
-      <section className="mx-auto max-w-[1500px] px-6 pb-24 pt-32 md:px-12 md:pt-40">
+      <section className="mx-auto max-w-[1500px] px-6 pb-12 pt-18 md:px-12">
         {/* Breadcrumb */}
-        <nav className="font-sans text-[10px] tracking-[0.25em] text-neutral-400">
-          <Link href="/products" className="transition-colors hover:text-neutral-900">
+        <nav className="font-sans text-[17px] font-normal leading-[31px] tracking-normal text-neutral-400">
+          <Link
+            href="/products"
+            className="transition-colors hover:text-neutral-900"
+          >
             CREATIONS
           </Link>
           <span className="mx-2">/</span>
@@ -106,100 +123,73 @@ export default function ProductDetail({ product, related }: ProductDetailProps) 
 
           {/* Info */}
           <div className="flex flex-col justify-center">
-            <span className="font-sans text-[10px] tracking-[0.4em] text-neutral-500">
-              {product.category}
-            </span>
-            <h1 className="mt-4 font-serif text-3xl font-light leading-tight tracking-[0.04em] md:text-5xl">
+            {/* Category pill — connecting line — wishlist */}
+            <div className="flex items-center">
+              <span className="inline-flex shrink-0 items-center rounded-full bg-neutral-900 px-5 py-2 font-sans text-[16px] font-normal lowercase leading-none tracking-normal text-white">
+                {product.category}
+              </span>
+              <span className="h-px flex-1 bg-neutral-500" aria-hidden />
+              <button
+                type="button"
+                onClick={() =>
+                  toggle({
+                    slug: product.slug,
+                    name: product.name,
+                    image: product.image,
+                    price: product.price,
+                    category: product.category,
+                  })
+                }
+                aria-pressed={saved}
+                aria-label={saved ? "Remove from wishlist" : "Save to wishlist"}
+                className="flex h-[37px] w-[37px] shrink-0 items-center justify-center rounded-[13px] bg-neutral-900 text-white transition-colors hover:bg-neutral-700"
+              >
+                <svg
+                  className="h-4 w-4"
+                  viewBox="0 0 24 24"
+                  fill={saved ? "currentColor" : "none"}
+                  stroke="currentColor"
+                  strokeWidth="1.2"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M12 20.5 4.5 13a4.5 4.5 0 0 1 7.5-4.9A4.5 4.5 0 0 1 19.5 13L12 20.5Z"
+                  />
+                </svg>
+              </button>
+            </div>
+
+            <h1 className="mt-7 font-display text-[45px] font-normal leading-none tracking-normal">
               {product.name}
             </h1>
-            <p className="mt-5 font-sans text-sm leading-loose tracking-[0.04em] text-neutral-500">
+            <p className="mt-4 font-sans text-[13px] leading-relaxed tracking-[0.05em] text-neutral-500">
               {product.tagline}
             </p>
-            <p className="mt-6 font-serif text-2xl font-light tracking-[0.05em] text-neutral-800">
-              {product.price}
-            </p>
-
-            {/* Material selector */}
-            <div className="mt-10">
-              <span className="font-sans text-[11px] tracking-[0.3em] text-neutral-700">
-                MATERIAL
+            <div className="mt-6 flex items-baseline gap-3">
+              <span className="font-serif text-2xl font-medium tracking-[0.04em] text-neutral-900">
+                {product.price}
               </span>
-              <div className="mt-4 flex flex-wrap gap-3">
-                {product.materials.map((m) => (
-                  <button
-                    key={m}
-                    onClick={() => setMaterial(m)}
-                    className={`border px-5 py-2 font-sans text-[11px] tracking-[0.15em] transition-colors ${
-                      material === m
-                        ? "border-neutral-900 text-neutral-900"
-                        : "border-neutral-300 text-neutral-500 hover:border-neutral-900 hover:text-neutral-900"
-                    }`}
-                  >
-                    {m}
-                  </button>
-                ))}
-              </div>
+              <span className="font-sans text-[10px] tracking-[0.15em] text-neutral-400">
+                Including Taxes
+              </span>
             </div>
 
             {/* Actions */}
-            <div className="mt-12 flex flex-col gap-4 sm:flex-row">
-              <button
-                onClick={handleAddToBag}
-                className="flex-1 bg-neutral-900 px-10 py-4 font-sans text-[11px] tracking-[0.3em] text-white transition-colors hover:bg-neutral-700"
-              >
-                {added ? "ADDED TO BAG" : "ADD TO BAG"}
-              </button>
+            <div className="mt-10 flex flex-col gap-3">
               <Link
                 href="/contact"
-                className="flex-1 border border-neutral-900 px-10 py-4 text-center font-sans text-[11px] tracking-[0.3em] text-neutral-900 transition-colors hover:bg-neutral-900 hover:text-white"
+                className="bg-neutral-900 px-10 py-4 text-center font-sans text-[11px] tracking-[0.3em] text-white transition-colors hover:bg-neutral-700"
               >
-                BOOK AN APPOINTMENT
+                CONTACT US TO MAKE A PURCHASE
+              </Link>
+              <Link
+                href="/contact"
+                className="border border-neutral-900 px-10 py-4 text-center font-sans text-[11px] tracking-[0.3em] text-neutral-900 transition-colors hover:bg-neutral-900 hover:text-white"
+              >
+                REQUEST ASSISTANCE
               </Link>
             </div>
-
-            {/* Wishlist */}
-            <button
-              type="button"
-              onClick={() =>
-                toggle({
-                  slug: product.slug,
-                  name: product.name,
-                  image: product.image,
-                  price: product.price,
-                  category: product.category,
-                })
-              }
-              aria-pressed={saved}
-              className={`mt-6 flex items-center gap-2.5 font-sans text-[11px] tracking-[0.3em] transition-colors ${
-                saved
-                  ? "text-gold-600"
-                  : "text-neutral-500 hover:text-neutral-900"
-              }`}
-            >
-              <svg
-                className="h-4 w-4"
-                viewBox="0 0 24 24"
-                fill={saved ? "currentColor" : "none"}
-                stroke="currentColor"
-                strokeWidth="1.2"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M12 20.5 4.5 13a4.5 4.5 0 0 1 7.5-4.9A4.5 4.5 0 0 1 19.5 13L12 20.5Z"
-                />
-              </svg>
-              {saved ? "SAVED TO WISHLIST" : "SAVE TO WISHLIST"}
-            </button>
-
-            {added && (
-              <p className="mt-5 font-sans text-[11px] tracking-[0.15em] text-neutral-600">
-                {product.name} ({material}) has been added to your bag.{" "}
-                <Link href="/bag" className="underline underline-offset-4">
-                  View bag
-                </Link>
-              </p>
-            )}
 
             {/* Description */}
             <div className="mt-12 space-y-5 border-t border-neutral-200 pt-10">
@@ -233,42 +223,107 @@ export default function ProductDetail({ product, related }: ProductDetailProps) 
         </div>
       </section>
 
-      {/* Reviews */}
-      <ProductReviews slug={product.slug} />
+      {/* Editorial trio — the product's own gallery photos */}
+      {editorial.length > 1 && (
+        <section className="px-2 pb-2 md:px-3">
+          <div className={`grid grid-cols-1 gap-2 md:gap-3 ${trioColsClass}`}>
+            {editorial.map((src, i) => (
+              <div
+                key={`${src}-${i}`}
+                className="relative aspect-[3/4] overflow-hidden bg-neutral-100"
+              >
+                <Image
+                  src={src}
+                  alt={product.name}
+                  fill
+                  quality={90}
+                  sizes="(max-width: 768px) 100vw, 33vw"
+                  className="object-cover object-center"
+                />
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Related */}
-      <section className="border-t border-neutral-200 px-6 py-20 md:px-12">
+      {related.length > 0 && (
+        <section className="px-6 py-20 md:px-12">
+          <div className="mx-auto max-w-[1500px]">
+            <h2 className="font-serif text-2xl font-medium tracking-[0.02em] md:text-3xl">
+              You may also like
+            </h2>
+            <div className="mt-10 grid grid-cols-2 gap-4 lg:grid-cols-4 lg:gap-6">
+              {related.map((p) => (
+                <Link key={p.slug} href={productPath(p)} className="group">
+                  <div className="relative aspect-square overflow-hidden bg-neutral-100">
+                    <Image
+                      src={p.image}
+                      alt={p.name}
+                      fill
+                      quality={100}
+                      sizes="(max-width: 640px) 50vw, 25vw"
+                      className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                    />
+                  </div>
+                  <h3 className="mt-4 font-serif text-base font-medium leading-snug tracking-[0.03em]">
+                    {p.name}
+                  </h3>
+                  <p className="mt-1.5 font-sans text-[12px] tracking-[0.12em] text-neutral-600">
+                    {p.price}
+                  </p>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Full-width lifestyle banner */}
+      <section className="relative aspect-[16/10] w-full overflow-hidden md:aspect-[21/9]">
+        <Image
+          src="/assets/1 (4).png"
+          alt="The ÉLORIS world"
+          fill
+          quality={90}
+          sizes="100vw"
+          className="object-cover object-center"
+        />
+      </section>
+
+      {/* Exclusive ÉLORIS services */}
+      <section className="px-6 py-20 md:px-12">
         <div className="mx-auto max-w-[1500px]">
-          <h2 className="text-center font-sans text-xs font-medium tracking-[0.35em] text-neutral-700">
-            YOU MAY ALSO LIKE
+          <h2 className="font-serif text-2xl font-medium tracking-[0.02em] md:text-3xl">
+            Exclusive Eloris services
           </h2>
-          <div className="mt-12 grid grid-cols-1 gap-x-10 gap-y-12 sm:grid-cols-3">
-            {related.map((p) => (
-              <Link key={p.slug} href={productPath(p)} className="group">
-                <div className="relative aspect-square overflow-hidden bg-neutral-100">
+          <div className="mt-10 grid grid-cols-1 gap-x-8 gap-y-12 md:grid-cols-2">
+            {services.map((s) => (
+              <Link key={s.title} href={s.href} className="group block">
+                <div className="relative aspect-[4/3] overflow-hidden bg-neutral-100">
                   <Image
-                    src={p.image}
-                    alt={p.name}
+                    src={s.image}
+                    alt=""
                     fill
-                    quality={100}
-                    sizes="(max-width: 640px) 100vw, 33vw"
+                    quality={90}
+                    sizes="(max-width: 768px) 100vw, 50vw"
                     className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                   />
                 </div>
-                <span className="mt-4 block font-sans text-[10px] tracking-[0.35em] text-neutral-500">
-                  {p.category}
-                </span>
-                <h3 className="mt-2 font-serif text-xl font-light leading-snug tracking-[0.04em]">
-                  {p.name}
+                <h3 className="mt-6 font-serif text-2xl font-medium tracking-[0.02em]">
+                  {s.title}
                 </h3>
-                <p className="mt-2 font-sans text-[12px] tracking-[0.15em] text-neutral-600">
-                  {p.price}
+                <p className="mt-3 max-w-md font-sans text-sm leading-relaxed tracking-[0.03em] text-neutral-500">
+                  {s.text}
                 </p>
               </Link>
             ))}
           </div>
         </div>
       </section>
+
+      {/* Reviews */}
+      <ProductReviews slug={product.slug} />
 
       <Footer />
     </div>

@@ -37,7 +37,7 @@ export default async function Page({
   }
 
   const all = await getProducts();
-  const related = all.filter((p) => p.slug !== product.slug).slice(0, 3);
+  const related = all.filter((p) => p.slug !== product.slug).slice(0, 4);
 
   return <ProductDetail product={product} related={related} />;
 }
