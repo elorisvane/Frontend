@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import Header from "../components/Header";
@@ -75,7 +75,17 @@ export default function ProductDetail({
   const gallery = (
     product.images?.length ? product.images : [product.image]
   ).filter(Boolean);
-  const [activeImage, setActiveImage] = useState(gallery[0] ?? product.image);
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  // Auto-advance the hero gallery through the jewelry photos/videos.
+  useEffect(() => {
+    if (gallery.length <= 1) return;
+    const id = setInterval(
+      () => setActiveIndex((i) => (i + 1) % gallery.length),
+      4000,
+    );
+    return () => clearInterval(id);
+  }, [gallery.length]);
 
   // "Jewelry with model" media fills the lifestyle row; banner media renders as
   // full-width banners.
@@ -133,44 +143,48 @@ export default function ProductDetail({
           {/* Gallery */}
           <div>
             <div className="relative aspect-square overflow-hidden bg-neutral-100">
-              {/* Serve the original photo untouched (unoptimized): the hero is
-                  the focal selling surface, so we skip re-compression and
-                  crop-upscaling. Videos play inline with controls. */}
-              <Media
-                src={activeImage}
-                alt={product.name}
-                priority
-                unoptimized
-                controls
-                sizes="(max-width: 768px) 100vw, 50vw"
-                className="object-cover object-center"
-              />
-            </div>
-            {gallery.length > 1 && (
-              <div className="mt-4 grid grid-cols-5 gap-3">
-                {gallery.map((src, i) => (
-                  <button
-                    key={`${src}-${i}`}
-                    type="button"
-                    onClick={() => setActiveImage(src)}
-                    aria-label={`View photo ${i + 1}`}
-                    className={`relative aspect-square overflow-hidden bg-neutral-100 transition-opacity ${
-                      activeImage === src
-                        ? "ring-1 ring-neutral-900"
-                        : "opacity-70 hover:opacity-100"
-                    }`}
-                  >
-                    <Media
-                      src={src}
-                      alt=""
-                      quality={100}
-                      sizes="(max-width: 768px) 20vw, 10vw"
-                      className="object-cover object-center"
+              {/* Auto-advancing crossfade carousel of the jewelry photos/videos.
+                  The cover is served unoptimized (the hero is the focal selling
+                  surface, so we skip re-compression / crop-upscaling). */}
+              {gallery.map((src, i) => (
+                <div
+                  key={`${src}-${i}`}
+                  aria-hidden={i !== activeIndex}
+                  className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${
+                    i === activeIndex ? "opacity-100" : "opacity-0"
+                  }`}
+                >
+                  <Media
+                    src={src}
+                    alt={product.name}
+                    priority={i === 0}
+                    unoptimized
+                    sizes="(max-width: 768px) 100vw, 50vw"
+                    className="object-cover object-center"
+                  />
+                </div>
+              ))}
+
+              {/* Progress dots */}
+              {gallery.length > 1 && (
+                <div className="absolute inset-x-0 bottom-4 z-10 flex justify-center gap-2">
+                  {gallery.map((src, i) => (
+                    <button
+                      key={`dot-${src}-${i}`}
+                      type="button"
+                      onClick={() => setActiveIndex(i)}
+                      aria-label={`View photo ${i + 1}`}
+                      aria-current={i === activeIndex}
+                      className={`h-1.5 rounded-full transition-all ${
+                        i === activeIndex
+                          ? "w-5 bg-neutral-900"
+                          : "w-1.5 bg-neutral-900/40 hover:bg-neutral-900/70"
+                      }`}
                     />
-                  </button>
-                ))}
-              </div>
-            )}
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Info */}
