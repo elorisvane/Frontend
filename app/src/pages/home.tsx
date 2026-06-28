@@ -206,6 +206,9 @@ export default function Home({
   const stackRef = useRef<HTMLDivElement>(null);
   const panelRefs = useRef<(HTMLDivElement | null)[]>([]);
 
+  const galleryContainerRef = useRef<HTMLDivElement>(null);
+  const galleryTrackRef = useRef<HTMLDivElement>(null);
+
   // Slide-up cover: as the page scrolls through the pinned stack, each next
   // image slides up from below and fully covers the current one, so the
   // incoming photo settles cleanly into place (later panels sit on top).
@@ -248,6 +251,51 @@ export default function Home({
       if (raf) cancelAnimationFrame(raf);
     };
   }, [revealEnabled, sections.length]);
+
+  // Scroll-bound horizontal translation for the desktop gallery
+  useEffect(() => {
+    const container = galleryContainerRef.current;
+    const track = galleryTrackRef.current;
+    if (!container || !track) return;
+
+    let raf = 0;
+    const update = () => {
+      raf = 0;
+      if (window.innerWidth < 768) {
+        track.style.transform = "";
+        return;
+      }
+
+      const rect = container.getBoundingClientRect();
+      const scrolled = -rect.top;
+      const maxScroll = container.offsetHeight - window.innerHeight;
+
+      if (maxScroll <= 0) return;
+
+      const progress = Math.min(1, Math.max(0, scrolled / maxScroll));
+      const maxTrackScroll = track.scrollWidth - window.innerWidth;
+      
+      if (maxTrackScroll <= 0) {
+        track.style.transform = "translate3d(0, 0, 0)";
+        return;
+      }
+
+      track.style.transform = `translate3d(${-progress * maxTrackScroll}px, 0, 0)`;
+    };
+
+    const onScroll = () => {
+      if (!raf) raf = requestAnimationFrame(update);
+    };
+
+    update();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+      if (raf) cancelAnimationFrame(raf);
+    };
+  }, [gallery]);
 
   return (
     <div className="min-h-screen bg-white text-neutral-900 selection:bg-gold-200 selection:text-black">
@@ -298,28 +346,65 @@ export default function Home({
         )}
 
         {/* --- BOTTOM GALLERY --- */}
-        <section className="no-scrollbar flex snap-x snap-mandatory gap-[2px] overflow-x-auto bg-neutral-200">
-          {gallery.map((item) => (
-            <MaybeLink
-              key={item.id}
-              href={item.linkUrl}
-              className="group relative block aspect-[839/1075] w-[85vw] shrink-0 snap-start overflow-hidden md:w-[839px]"
+        <section
+          ref={galleryContainerRef}
+          className="relative w-full md:h-[250vh] bg-white"
+        >
+          {/* Mobile scroll strip */}
+          <div className="no-scrollbar flex snap-x snap-mandatory gap-[2px] overflow-x-auto md:hidden">
+            {gallery.map((item) => (
+              <MaybeLink
+                key={item.id}
+                href={item.linkUrl}
+                className="group relative block aspect-[839/1075] w-[85vw] shrink-0 snap-start overflow-hidden"
+              >
+                <FillMedia
+                  src={item.src}
+                  alt={item.alt}
+                  mediaType={item.mediaType}
+                  poster={item.poster}
+                  sizes="85vw"
+                  className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                />
+                {item.alt && (
+                  <span className="pointer-events-none absolute inset-x-0 bottom-12 z-10 px-4 text-center font-sans text-[40px] font-medium leading-[30px] tracking-normal text-white [text-shadow:0_2px_10px_rgba(0,0,0,0.55)]">
+                    {item.alt}
+                  </span>
+                )}
+              </MaybeLink>
+            ))}
+          </div>
+
+          {/* Desktop full-bleed/scroll track */}
+          <div className="hidden md:block sticky top-0 h-screen w-full overflow-hidden">
+            <div
+              ref={galleryTrackRef}
+              className="flex h-full items-center gap-[2px] will-change-transform"
+              style={{ width: "max-content" }}
             >
-              <FillMedia
-                src={item.src}
-                alt={item.alt}
-                mediaType={item.mediaType}
-                poster={item.poster}
-                sizes="(max-width: 768px) 85vw, 839px"
-                className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
-              />
-              {item.alt && (
-                <span className="pointer-events-none absolute inset-x-0 bottom-12 z-10 px-4 text-center font-sans text-[40px] font-medium leading-[30px] tracking-normal text-white [text-shadow:0_2px_10px_rgba(0,0,0,0.55)]">
-                  {item.alt}
-                </span>
-              )}
-            </MaybeLink>
-          ))}
+              {gallery.map((item) => (
+                <MaybeLink
+                  key={item.id}
+                  href={item.linkUrl}
+                  className="group relative block h-screen aspect-[839/1075] shrink-0 overflow-hidden"
+                >
+                  <FillMedia
+                    src={item.src}
+                    alt={item.alt}
+                    mediaType={item.mediaType}
+                    poster={item.poster}
+                    sizes="50vw"
+                    className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                  />
+                  {item.alt && (
+                    <span className="pointer-events-none absolute inset-x-0 bottom-12 z-10 px-4 text-center font-sans text-[40px] font-medium leading-[30px] tracking-normal text-white [text-shadow:0_2px_10px_rgba(0,0,0,0.55)]">
+                      {item.alt}
+                    </span>
+                  )}
+                </MaybeLink>
+              ))}
+            </div>
+          </div>
         </section>
       </main>
       <StoreAdvantages />
