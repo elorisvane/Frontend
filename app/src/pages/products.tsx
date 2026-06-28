@@ -12,12 +12,12 @@ import type { MediaSlot } from "../data/home";
 // Maps filter checkbox category to product.category in the data
 const getFilterCategory = (prodCategory: string): string => {
   const cat = prodCategory.toUpperCase();
-  if (cat === "HIGH JEWELLERY") return "NECKLACE";
-  if (cat === "BRACELETS") return "BRACELET";
-  if (cat === "EARRINGS") return "EARRING";
-  if (cat === "BROOCHES") return "BROOCH";
-  if (cat === "WATCHES") return "WATCH";
-  if (cat === "RINGS") return "RING";
+  if (cat === "HIGH JEWELLERY") return "Necklace";
+  if (cat === "BRACELETS") return "Bracelet";
+  if (cat === "EARRINGS") return "Earring";
+  if (cat === "BROOCHES") return "Brooch";
+  if (cat === "WATCHES") return "Watch";
+  if (cat === "RINGS") return "Ring";
   return cat;
 };
 

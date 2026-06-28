@@ -9,6 +9,58 @@ import { productPath, categorySlug, type Product } from "../data/products";
 import { useWishlist } from "../lib/wishlist";
 import ProductReviews from "../components/ProductReviews";
 
+const VIDEO_RE = /\.(mp4|webm|mov)(\?.*)?$/i;
+const isVideo = (src: string) => VIDEO_RE.test(src);
+
+/** Renders a media URL as a Next <Image> or an autoplaying <video> by extension.
+ *  Always fills its (position: relative) parent. */
+function Media({
+  src,
+  alt,
+  sizes,
+  className = "",
+  quality = 90,
+  priority = false,
+  unoptimized = false,
+  controls = false,
+}: {
+  src: string;
+  alt: string;
+  sizes?: string;
+  className?: string;
+  quality?: number;
+  priority?: boolean;
+  unoptimized?: boolean;
+  controls?: boolean;
+}) {
+  if (isVideo(src)) {
+    return (
+      <video
+        src={src}
+        autoPlay
+        muted
+        loop
+        playsInline
+        controls={controls}
+        aria-label={alt || undefined}
+        className={`absolute inset-0 h-full w-full ${className}`}
+      />
+    );
+  }
+  return (
+    <Image
+      src={src}
+      alt={alt}
+      fill
+      priority={priority}
+      unoptimized={unoptimized}
+      quality={quality}
+      sizes={sizes}
+      className={className}
+    />
+  );
+}
+
 interface ProductDetailProps {
   product: Product;
   related: Product[];
@@ -25,12 +77,14 @@ export default function ProductDetail({
   ).filter(Boolean);
   const [activeImage, setActiveImage] = useState(gallery[0] ?? product.image);
 
-  // The editorial trio reuses the product's own gallery photos.
-  const editorial = gallery.slice(0, 3);
+  // "Jewelry with model" media fills the lifestyle row; banner media renders as
+  // full-width banners.
+  const modelTrio = product.modelMedia;
+  const banners = product.bannerMedia;
   const trioColsClass =
-    editorial.length >= 3
+    modelTrio.length >= 3
       ? "md:grid-cols-3"
-      : editorial.length === 2
+      : modelTrio.length === 2
         ? "md:grid-cols-2"
         : "md:grid-cols-1";
 
@@ -79,16 +133,15 @@ export default function ProductDetail({
           {/* Gallery */}
           <div>
             <div className="relative aspect-square overflow-hidden bg-neutral-100">
-              <Image
+              {/* Serve the original photo untouched (unoptimized): the hero is
+                  the focal selling surface, so we skip re-compression and
+                  crop-upscaling. Videos play inline with controls. */}
+              <Media
                 src={activeImage}
                 alt={product.name}
-                fill
                 priority
-                // Serve the original file untouched: the hero photo is the focal
-                // selling surface, so we skip the optimizer (no re-compression
-                // and no crop-upscaling when a wide photo sits in this tall 4:5
-                // frame) for the crispest possible result.
                 unoptimized
+                controls
                 sizes="(max-width: 768px) 100vw, 50vw"
                 className="object-cover object-center"
               />
@@ -107,10 +160,9 @@ export default function ProductDetail({
                         : "opacity-70 hover:opacity-100"
                     }`}
                   >
-                    <Image
+                    <Media
                       src={src}
                       alt=""
-                      fill
                       quality={100}
                       sizes="(max-width: 768px) 20vw, 10vw"
                       className="object-cover object-center"
@@ -223,19 +275,18 @@ export default function ProductDetail({
         </div>
       </section>
 
-      {/* Editorial trio — the product's own gallery photos */}
-      {editorial.length > 1 && (
+      {/* Lifestyle row — "jewelry with model" media (first three) */}
+      {modelTrio.length > 0 && (
         <section className="px-2 pb-2 md:px-3">
           <div className={`grid grid-cols-1 gap-2 md:gap-3 ${trioColsClass}`}>
-            {editorial.map((src, i) => (
+            {modelTrio.map((src, i) => (
               <div
                 key={`${src}-${i}`}
                 className="relative aspect-[3/4] overflow-hidden bg-neutral-100"
               >
-                <Image
+                <Media
                   src={src}
                   alt={product.name}
-                  fill
                   quality={90}
                   sizes="(max-width: 768px) 100vw, 33vw"
                   className="object-cover object-center"
@@ -279,17 +330,21 @@ export default function ProductDetail({
         </section>
       )}
 
-      {/* Full-width lifestyle banner */}
-      <section className="relative aspect-[16/10] w-full overflow-hidden md:aspect-[21/9]">
-        <Image
-          src="/assets/1 (4).png"
-          alt="The ÉLORIS world"
-          fill
-          quality={90}
-          sizes="100vw"
-          className="object-cover object-center"
-        />
-      </section>
+      {/* Full-width banners — dedicated banner media (photos + videos) */}
+      {banners.map((src, i) => (
+        <section
+          key={`${src}-${i}`}
+          className="relative aspect-[16/10] w-full overflow-hidden md:aspect-[21/9]"
+        >
+          <Media
+            src={src}
+            alt={product.name}
+            quality={90}
+            sizes="100vw"
+            className="object-cover object-center"
+          />
+        </section>
+      ))}
 
       {/* Exclusive ÉLORIS services */}
       <section className="px-6 py-20 md:px-12">
