@@ -161,7 +161,7 @@ export default function Products({
       <Header light />
 
       {/* --- HERO CAMPAIGN BANNER --- */}
-      <div className="relative mt-[53px] h-[300px] w-full overflow-hidden bg-neutral-100 md:h-[522px]">
+      <div className="relative h-[300px] w-full overflow-hidden bg-neutral-100 md:h-[522px]">
         <MediaFill
           media={heroMedia}
           fallbackSrc="/assets/1 (1).png"
