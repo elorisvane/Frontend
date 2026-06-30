@@ -6,9 +6,10 @@ import {
   type Product,
 } from "./src/data/products";
 import { getPosts, type Post } from "./src/data/posts";
+import { SITE_URL } from "./src/lib/site";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = "https://eloris.com";
+  const baseUrl = SITE_URL;
 
   // Fetch dynamic products and blog posts
   let products: Product[] = [];

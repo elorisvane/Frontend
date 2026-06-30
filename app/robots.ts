@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { SITE_URL } from "./src/lib/site";
 
 export default function robots(): MetadataRoute.Robots {
   return {
@@ -7,6 +8,7 @@ export default function robots(): MetadataRoute.Robots {
       allow: "/",
       disallow: ["/account", "/bag", "/wishlist"],
     },
-    sitemap: "https://eloris.com/sitemap.xml",
+    sitemap: `${SITE_URL}/sitemap.xml`,
+    host: SITE_URL,
   };
 }

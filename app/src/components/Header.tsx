@@ -306,8 +306,8 @@ export default function Header({
         </div>
 
         {/* --- CATEGORY MEGA-MENU (drops down from the hamburger) ---
-            The grid 0fr→1fr trick animates the height from 0 to auto so the
-            white panel slides open beneath the bar, leaving the hero visible. */}
+              The grid 0fr→1fr trick animates the height from 0 to auto so the
+              white panel slides open beneath the bar, leaving the hero visible. */}
         <div
           id="mega-menu"
           role="region"
@@ -390,7 +390,7 @@ export default function Header({
       </header>
 
       {/* Click-away backdrop: closes the mega-menu when the hero is clicked.
-          Sits below the header so the bar and dropdown stay interactive. */}
+            Sits below the header so the bar and dropdown stay interactive. */}
       <div
         onClick={() => setMenuOpen(false)}
         aria-hidden

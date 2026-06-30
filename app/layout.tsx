@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import localFont from "next/font/local";
 import "./globals.css";
 import Providers from "./src/components/Providers";
+import { SITE_URL, SITE_NAME, SITE_DESCRIPTION } from "./src/lib/site";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -75,9 +76,18 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: "ÉLORIS | High Jewellery, Watches & Signature Creations",
-  description:
-    "Discover the ÉLORIS collection of high jewellery, watches and signature creations. Crafting timeless luxury and exquisite diamond pieces.",
-  metadataBase: new URL("https://eloris.com"),
+  description: SITE_DESCRIPTION,
+  metadataBase: new URL(SITE_URL),
+  // Browser tab / bookmark / home-screen icon — the ÉLORIS logo. SVG first for
+  // crisp modern browsers, PNG as a fallback; Apple touch icon must be raster.
+  icons: {
+    icon: [
+      { url: "/logo/tab-icon.svg", type: "image/svg+xml", sizes: "any" },
+      { url: "/logo/tab-icon.png", type: "image/png", sizes: "118x118" },
+    ],
+    shortcut: "/logo/tab-icon.png",
+    apple: "/logo/tab-icon.png",
+  },
   keywords: [
     "ÉLORIS",
     "High Jewellery",
@@ -92,18 +102,16 @@ export const metadata: Metadata = {
   ],
   openGraph: {
     title: "ÉLORIS | High Jewellery, Watches & Signature Creations",
-    description:
-      "Discover the ÉLORIS collection of high jewellery, watches and signature creations. Crafting timeless luxury and exquisite diamond pieces.",
-    url: "https://eloris.com",
-    siteName: "ÉLORIS",
+    description: SITE_DESCRIPTION,
+    url: SITE_URL,
+    siteName: SITE_NAME,
     locale: "en_US",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
     title: "ÉLORIS | High Jewellery, Watches & Signature Creations",
-    description:
-      "Discover the ÉLORIS collection of high jewellery, watches and signature creations. Crafting timeless luxury and exquisite diamond pieces.",
+    description: SITE_DESCRIPTION,
   },
   robots: {
     index: true,
