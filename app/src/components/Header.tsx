@@ -13,16 +13,12 @@ import {
   productPath,
   type Product,
 } from "../data/products";
+// The category mega-menu is managed in the Admin app ("Menu & categories") and
+// stored in Supabase. We start from the bundled fallback (instant, offline-safe)
+// and swap in the live menu on mount so the bar reflects the admin directly.
+import { getNavCategories, fallbackNav, type MegaSection } from "../data/nav";
 import { useCart } from "../lib/cart";
 import { useWishlist } from "../lib/wishlist";
-
-const navLinks = [
-  { href: "/", label: "HOME" },
-  { href: "/products", label: "CREATIONS" },
-  { href: "/about", label: "ABOUT" },
-  { href: "/blog", label: "JOURNAL" },
-  { href: "/contact", label: "CONTACT" },
-];
 
 interface HeaderProps {
   /** When true the header starts transparent over a hero and darkens on scroll.
@@ -39,13 +35,19 @@ export default function Header({
   const { count } = useCart();
   const { count: wishlistCount } = useWishlist();
   const [isScrolled, setIsScrolled] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  // The hamburger opens the category mega-menu as a dropdown under the header.
+  const [menuOpen, setMenuOpen] = useState(false);
+  // Category mega-menu: bundled fallback until the live admin menu is fetched.
+  const [sections, setSections] = useState<MegaSection[]>(fallbackNav);
+  // Which tab's tiles the open mega-menu is showing.
+  const [activeTab, setActiveTab] = useState<string>(fallbackNav[0].id);
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState("");
   // Searchable catalogue: bundled fallback until the live data is fetched.
   const [products, setProducts] = useState<Product[]>(fallbackProducts);
   const [posts, setPosts] = useState<Post[]>(fallbackPosts);
   const catalogLoaded = useRef(false);
+  const navLoaded = useRef(false);
   // The bag count comes from localStorage, which isn't available during SSR.
   // Render the badge only after mount so the server/client markup matches.
   const [mounted, setMounted] = useState(false);
@@ -71,6 +73,26 @@ export default function Header({
     };
   }, [searchOpen]);
 
+  // Load the live category menu (managed in the Admin app) once on mount, then
+  // swap it in over the bundled fallback.
+  useEffect(() => {
+    if (navLoaded.current) return;
+    navLoaded.current = true;
+    let active = true;
+    getNavCategories()
+      .then((live) => {
+        if (!active || live.length === 0) return;
+        setSections(live);
+        setActiveTab(live[0].id);
+      })
+      .catch(() => {
+        // Keep the bundled fallback if the fetch fails.
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 40);
     handleScroll();
@@ -88,7 +110,27 @@ export default function Header({
     return () => window.removeEventListener("keydown", handleKey);
   }, [searchOpen]);
 
+  // Close the mega-menu on Escape.
+  useEffect(() => {
+    if (!menuOpen) return;
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setMenuOpen(false);
+    };
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [menuOpen]);
+
   const solid = !transparent || isScrolled;
+  // The header reads "light" (white background, dark content) on inner pages and
+  // whenever the mega-menu is open, so the dropdown stays legible over the hero.
+  const lightActive = light || menuOpen;
+  const activeSection = sections.find((s) => s.id === activeTab) ?? sections[0];
+
+  function toggleMenu() {
+    // Always reopen on the first tab so it reads top-to-bottom each time.
+    if (!menuOpen) setActiveTab(sections[0].id);
+    setMenuOpen((open) => !open);
+  }
 
   const q = query.trim().toLowerCase();
   const results = q
@@ -129,18 +171,22 @@ export default function Header({
     <>
       <header
         className={`fixed inset-x-0 top-0 z-50 transition-all duration-500 ease-in-out ${
-          light
-            ? "bg-white/95 text-neutral-900 border-b border-neutral-100 py-4 shadow-xs"
-            : solid
-              ? "bg-black/70 text-white py-4 backdrop-blur-md"
-              : "bg-gradient-to-b from-black/30 to-transparent text-white py-6"
+          menuOpen
+            ? "bg-white text-neutral-900 py-4"
+            : light
+              ? "bg-white/95 text-neutral-900 border-b border-neutral-100 py-4 shadow-xs"
+              : solid
+                ? "bg-black/70 text-white py-4 backdrop-blur-md"
+                : "bg-gradient-to-b from-black/30 to-transparent text-white py-6"
         }`}
       >
         <div className="mx-auto flex max-w-[1600px] items-center justify-between px-6 md:px-12">
-          {/* Hamburger (left) */}
+          {/* Hamburger (left) — toggles the category mega-menu */}
           <button
-            onClick={() => setMobileMenuOpen(true)}
-            aria-label="Open menu"
+            onClick={toggleMenu}
+            aria-label={menuOpen ? "Close menu" : "Open menu"}
+            aria-expanded={menuOpen}
+            aria-controls="mega-menu"
             className="transition-opacity hover:opacity-70 focus:outline-none"
           >
             <Image
@@ -149,7 +195,7 @@ export default function Header({
               width={30}
               height={30}
               // Icon art is solid black; invert it to white over the dark/transparent header.
-              className={`h-6 w-6 ${light ? "" : "invert"}`}
+              className={`h-6 w-6 ${lightActive ? "" : "invert"}`}
               aria-hidden
             />
           </button>
@@ -167,18 +213,18 @@ export default function Header({
               height={47}
               priority
               // Logo art is solid black; invert it to white over the dark/transparent header.
-              className={`h-10 w-auto md:h-8 ${light ? "" : "invert"}`}
+              className={`h-10 w-auto md:h-8 ${lightActive ? "" : "invert"}`}
             />
           </Link>
 
           {/* Icons (right) */}
           <div
-            className={`flex items-center gap-5 md:gap-7 ${light ? "text-neutral-900" : "text-white"}`}
+            className={`flex items-center gap-5 md:gap-7 ${lightActive ? "text-neutral-900" : "text-white"}`}
           >
             <button
               onClick={() => setSearchOpen(true)}
               aria-label="Search"
-              className={`transition-colors ${light ? "hover:text-gold-500" : "hover:text-gold-200"}`}
+              className={`transition-colors ${lightActive ? "hover:text-gold-500" : "hover:text-gold-200"}`}
             >
               <svg
                 className="h-5 w-5"
@@ -194,7 +240,7 @@ export default function Header({
             <Link
               href="/account"
               aria-label="Account"
-              className={`hidden transition-colors sm:block ${light ? "hover:text-gold-500" : "hover:text-gold-200"}`}
+              className={`hidden transition-colors sm:block ${lightActive ? "hover:text-gold-500" : "hover:text-gold-200"}`}
             >
               <svg
                 className="h-5 w-5"
@@ -210,7 +256,7 @@ export default function Header({
             <Link
               href="/wishlist"
               aria-label={`Wishlist${mounted && wishlistCount > 0 ? ` (${wishlistCount})` : ""}`}
-              className={`relative hidden transition-colors sm:block ${light ? "hover:text-gold-500" : "hover:text-gold-200"}`}
+              className={`relative hidden transition-colors sm:block ${lightActive ? "hover:text-gold-500" : "hover:text-gold-200"}`}
             >
               <svg
                 className="h-5 w-5"
@@ -234,7 +280,7 @@ export default function Header({
             <Link
               href="/bag"
               aria-label={`Bag${mounted && count > 0 ? ` (${count})` : ""}`}
-              className={`relative transition-colors ${light ? "hover:text-gold-500" : "hover:text-gold-200"}`}
+              className={`relative transition-colors ${lightActive ? "hover:text-gold-500" : "hover:text-gold-200"}`}
             >
               <svg
                 className="h-5 w-5"
@@ -258,71 +304,100 @@ export default function Header({
             </Link>
           </div>
         </div>
+
+        {/* --- CATEGORY MEGA-MENU (drops down from the hamburger) ---
+            The grid 0fr→1fr trick animates the height from 0 to auto so the
+            white panel slides open beneath the bar, leaving the hero visible. */}
+        <div
+          id="mega-menu"
+          role="region"
+          aria-label="Categories"
+          className={`grid overflow-hidden transition-all duration-500 ease-in-out ${
+            menuOpen
+              ? "grid-rows-[1fr] opacity-100"
+              : "pointer-events-none grid-rows-[0fr] opacity-0"
+          }`}
+        >
+          <div className="overflow-hidden">
+            <div className="mx-auto max-w-[1600px] px-6 pb-12 pt-7 md:px-12">
+              {/* Tabs */}
+              <nav className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3 md:gap-x-12">
+                {sections.map((tab) => {
+                  const active = activeTab === tab.id;
+                  return (
+                    <button
+                      key={tab.id}
+                      type="button"
+                      onMouseEnter={() => setActiveTab(tab.id)}
+                      onClick={() => setActiveTab(tab.id)}
+                      className={`relative pb-2 font-sans text-[12px] uppercase tracking-[0.15em] transition-colors ${
+                        active
+                          ? "text-neutral-900"
+                          : "text-neutral-500 hover:text-neutral-900"
+                      }`}
+                    >
+                      {tab.label}
+                      {active && (
+                        <span className="absolute inset-x-0 -bottom-px h-px bg-neutral-900" />
+                      )}
+                    </button>
+                  );
+                })}
+              </nav>
+
+              {/* Tiles for the active tab. A category with no tiles (managed in
+                  the admin) simply links through to its own page. */}
+              {activeSection.tiles.length > 0 ? (
+                <div className="mt-10 flex flex-wrap justify-center gap-x-6 gap-y-8">
+                  {activeSection.tiles.map((tile, i) => (
+                    <Link
+                      key={`${tile.label}-${i}`}
+                      href={tile.href}
+                      onClick={() => setMenuOpen(false)}
+                      className="group flex w-[140px] flex-col items-center md:w-[165px]"
+                    >
+                      <span className="relative aspect-square w-full overflow-hidden bg-neutral-200">
+                        {tile.image && (
+                          <Image
+                            src={tile.image}
+                            alt={tile.label}
+                            fill
+                            sizes="165px"
+                            className="object-cover transition-transform duration-500 ease-out group-hover:scale-105"
+                          />
+                        )}
+                      </span>
+                      <span className="mt-4 text-center font-sans text-[12px] uppercase tracking-[0.08em] text-neutral-800 transition-colors group-hover:text-neutral-500">
+                        {tile.label}
+                      </span>
+                    </Link>
+                  ))}
+                </div>
+              ) : (
+                <div className="mt-10 flex justify-center">
+                  <Link
+                    href={activeSection.href}
+                    onClick={() => setMenuOpen(false)}
+                    className="font-sans text-[12px] uppercase tracking-[0.2em] text-neutral-700 underline-offset-4 transition-colors hover:text-neutral-900 hover:underline"
+                  >
+                    View all
+                  </Link>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
       </header>
 
-      {/* --- FULL-SCREEN MENU --- */}
+      {/* Click-away backdrop: closes the mega-menu when the hero is clicked.
+          Sits below the header so the bar and dropdown stay interactive. */}
       <div
-        className={`fixed inset-0 z-[60] flex flex-col justify-between bg-black p-8 text-white backdrop-blur-lg transition-all duration-500 ease-in-out ${
-          mobileMenuOpen
-            ? "translate-y-0 opacity-100"
-            : "pointer-events-none -translate-y-full opacity-0"
+        onClick={() => setMenuOpen(false)}
+        aria-hidden
+        className={`fixed inset-0 z-40 transition-opacity duration-300 ${
+          menuOpen ? "opacity-100" : "pointer-events-none opacity-0"
         }`}
-      >
-        <div className="flex items-center justify-between">
-          <span className="font-serif text-xl font-light tracking-[0.4em]">
-            ÉLORIS
-          </span>
-          <button
-            onClick={() => setMobileMenuOpen(false)}
-            aria-label="Close menu"
-            className="text-white/60 transition-colors hover:text-white"
-          >
-            <svg
-              className="h-6 w-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="1"
-                d="M6 18 18 6M6 6l12 12"
-              />
-            </svg>
-          </button>
-        </div>
-
-        <nav className="my-auto flex flex-col space-y-6 text-center font-serif text-3xl font-light tracking-[0.2em]">
-          {navLinks.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              onClick={() => setMobileMenuOpen(false)}
-              className="transition-colors hover:text-gold-200"
-            >
-              {link.label}
-            </Link>
-          ))}
-        </nav>
-
-        <div className="flex flex-col items-center space-y-4 font-sans text-xs tracking-[0.2em] text-white/50">
-          <Link
-            href="/contact"
-            className="hover:text-white"
-            onClick={() => setMobileMenuOpen(false)}
-          >
-            STORE LOCATOR
-          </Link>
-          <Link
-            href="/about"
-            className="hover:text-white"
-            onClick={() => setMobileMenuOpen(false)}
-          >
-            THE MAISON
-          </Link>
-        </div>
-      </div>
+      />
 
       {/* --- SEARCH OVERLAY --- */}
       <div
