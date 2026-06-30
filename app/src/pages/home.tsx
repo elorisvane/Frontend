@@ -303,47 +303,66 @@ export default function Home({
 
       {/* --- FULL-SCREEN CAMPAIGN SECTIONS --- */}
       <main>
-        {revealEnabled ? (
-          /* Scroll-reveal: a tall scroll track with a pinned viewport-height
-             frame holding every campaign image stacked on top of one another. */
-          <div
-            ref={stackRef}
-            className="relative"
-            style={{ height: `${sections.length * 100}vh` }}
-          >
-            <div className="sticky top-0 h-screen w-full overflow-hidden">
-              {sections.map((section, i) => (
-                <div
-                  key={section.id}
-                  id={section.id}
-                  ref={(el) => {
-                    panelRefs.current[i] = el;
-                  }}
-                  className="absolute inset-0 overflow-hidden will-change-transform"
-                  style={{
-                    zIndex: i,
-                    // Resting state for scroll position 0: panel 0 is shown,
-                    // the rest wait one screen below until JS scrubs them up.
-                    transform: `translate3d(0, ${i === 0 ? 0 : 100}%, 0)`,
-                  }}
-                >
-                  <CampaignArtwork section={section} eager={i === 0} />
-                </div>
-              ))}
-            </div>
-          </div>
-        ) : (
-          /* Fallback (no JS / reduced motion): the original one-by-one snap. */
-          sections.map((section, i) => (
+        {/* MOBILE — full-screen vertical swipe. Each campaign image fills the
+            screen and snaps cleanly into place ("magnet"), so the page never
+            rests on a half image mid-scroll. The desktop scroll-reveal (below)
+            is what caused the half-image effect on phones, so mobile uses a
+            plain scroll-snap carousel instead. */}
+        <div className="no-scrollbar h-[100dvh] snap-y snap-mandatory overflow-y-auto md:hidden">
+          {sections.map((section, i) => (
             <section
               key={section.id}
-              id={section.id}
-              className="relative flex h-screen w-full snap-start flex-col items-center justify-end overflow-hidden"
+              className="relative h-[100dvh] w-full snap-start snap-always overflow-hidden"
             >
               <CampaignArtwork section={section} eager={i === 0} />
             </section>
-          ))
-        )}
+          ))}
+        </div>
+
+        {/* DESKTOP — the scroll-reveal stack (or reduced-motion fallback). */}
+        <div className="hidden md:block">
+          {revealEnabled ? (
+            /* Scroll-reveal: a tall scroll track with a pinned viewport-height
+               frame holding every campaign image stacked on top of one another. */
+            <div
+              ref={stackRef}
+              className="relative"
+              style={{ height: `${sections.length * 100}vh` }}
+            >
+              <div className="sticky top-0 h-screen w-full overflow-hidden">
+                {sections.map((section, i) => (
+                  <div
+                    key={section.id}
+                    id={section.id}
+                    ref={(el) => {
+                      panelRefs.current[i] = el;
+                    }}
+                    className="absolute inset-0 overflow-hidden will-change-transform"
+                    style={{
+                      zIndex: i,
+                      // Resting state for scroll position 0: panel 0 is shown,
+                      // the rest wait one screen below until JS scrubs them up.
+                      transform: `translate3d(0, ${i === 0 ? 0 : 100}%, 0)`,
+                    }}
+                  >
+                    <CampaignArtwork section={section} eager={i === 0} />
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            /* Fallback (no JS / reduced motion): the original one-by-one snap. */
+            sections.map((section, i) => (
+              <section
+                key={section.id}
+                id={section.id}
+                className="relative flex h-screen w-full snap-start flex-col items-center justify-end overflow-hidden"
+              >
+                <CampaignArtwork section={section} eager={i === 0} />
+              </section>
+            ))
+          )}
+        </div>
 
         {/* --- BOTTOM GALLERY --- */}
         <section
