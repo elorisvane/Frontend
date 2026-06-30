@@ -380,33 +380,35 @@ export default function ProductDetail({
       ))}
 
       {/* Exclusive ÉLORIS services */}
-      <section className="px-6 py-20 md:px-12">
-        <div className="mx-auto max-w-[1500px]">
-          <h2 className="font-serif text-2xl font-medium tracking-[0.02em] md:text-3xl">
+      <section className="py-20">
+        <div className="mx-auto max-w-[1500px] px-6 md:px-12">
+          <h2 className="font-display text-[30px] font-normal leading-none">
             Exclusive Eloris services
           </h2>
-          <div className="mt-10 grid grid-cols-1 gap-x-8 gap-y-12 md:grid-cols-2">
-            {services.map((s) => (
-              <Link key={s.title} href={s.href} className="group block">
-                <div className="relative aspect-[4/3] overflow-hidden bg-neutral-100">
-                  <Image
-                    src={s.image}
-                    alt=""
-                    fill
-                    quality={90}
-                    sizes="(max-width: 768px) 100vw, 50vw"
-                    className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
-                  />
-                </div>
-                <h3 className="mt-6 font-serif text-2xl font-medium tracking-[0.02em]">
+        </div>
+        <div className="mt-10 grid grid-cols-1 gap-y-12 md:grid-cols-2 md:gap-y-0">
+          {services.map((s) => (
+            <Link key={s.title} href={s.href} className="group block">
+              <div className="relative aspect-[6/5] overflow-hidden bg-neutral-100">
+                <Image
+                  src={s.image}
+                  alt=""
+                  fill
+                  quality={90}
+                  sizes="(max-width: 768px) 100vw, 50vw"
+                  className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                />
+              </div>
+              <div className="px-6 md:px-12">
+                <h3 className="mt-6 font-display text-[25px] font-normal leading-none tracking-normal">
                   {s.title}
                 </h3>
-                <p className="mt-3 max-w-md font-sans text-sm leading-relaxed tracking-[0.03em] text-neutral-500">
+                <p className="mt-3 max-w-md font-sans text-[20px] font-normal leading-none tracking-normal text-neutral-500">
                   {s.text}
                 </p>
-              </Link>
-            ))}
-          </div>
+              </div>
+            </Link>
+          ))}
         </div>
       </section>
 
