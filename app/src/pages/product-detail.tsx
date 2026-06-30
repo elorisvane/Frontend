@@ -266,7 +266,9 @@ export default function ProductDetail({
                 }}
                 className="bg-neutral-900 px-10 py-4 text-center font-sans text-[11px] tracking-[0.3em] text-white transition-colors hover:bg-neutral-700 disabled:opacity-60"
               >
-                {addedToBag ? "ADDED — VIEW BAG" : "ADD TO BAG"}
+                {addedToBag
+                  ? "ADDED — VIEW BAG"
+                  : "CONTACT US TO MAKE A PURCHASE"}
               </button>
               <Link
                 href="/contact"
