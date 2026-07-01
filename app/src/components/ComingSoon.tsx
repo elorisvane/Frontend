@@ -1,19 +1,29 @@
+import DevPreviewEntry from "./DevPreviewEntry";
+
 const DEFAULT_HEADING = "Something extraordinary is coming";
 const DEFAULT_MESSAGE =
   "Our new collection is being crafted with the utmost care. Please return shortly to discover the Maison ÉLORIS.";
+
+/** Cookie that unlocks the storefront in development. See `DevPreviewEntry`. */
+export const DEV_PREVIEW_COOKIE = "eloris-dev-preview";
 
 /**
  * Full-screen Coming Soon page shown while the storefront is locked (toggled
  * from the Admin's Site Availability screen). Self-contained — it deliberately
  * renders no header, footer, or navigation, so the rest of the site stays
  * sealed off.
+ *
+ * When `showDevEntry` is set (only ever true under `next dev`), a discreet
+ * link lets a developer slip past the lock to preview the real home screen.
  */
 export default function ComingSoon({
   heading,
   message,
+  showDevEntry = false,
 }: {
   heading?: string;
   message?: string;
+  showDevEntry?: boolean;
 }) {
   return (
     <main className="flex min-h-screen w-full flex-col items-center justify-center bg-black px-6 text-center text-white">
@@ -35,6 +45,8 @@ export default function ComingSoon({
           Opening soon
         </p>
       </div>
+
+      {showDevEntry && <DevPreviewEntry cookieName={DEV_PREVIEW_COOKIE} />}
     </main>
   );
 }

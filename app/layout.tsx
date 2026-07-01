@@ -1,10 +1,11 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import localFont from "next/font/local";
+import { cookies } from "next/headers";
 import "./globals.css";
 import Providers from "./src/components/Providers";
 import Analytics from "./src/components/Analytics";
-import ComingSoon from "./src/components/ComingSoon";
+import ComingSoon, { DEV_PREVIEW_COOKIE } from "./src/components/ComingSoon";
 import { getSiteSettings } from "./src/data/settings";
 import { SITE_URL, SITE_NAME, SITE_DESCRIPTION } from "./src/lib/site";
 
@@ -139,6 +140,16 @@ export default async function RootLayout({
 }>) {
   const { comingSoon, heading, message } = await getSiteSettings();
 
+  // Development-only escape hatch: while building locally, the shared database
+  // may have Coming Soon switched on, which would otherwise seal off the whole
+  // storefront. When running `next dev`, a developer can click "Enter storefront"
+  // on the Coming Soon page to set a preview cookie and see the real home screen.
+  // The bypass is inert in production builds — the cookie is never consulted.
+  const isDev = process.env.NODE_ENV !== "production";
+  const devPreview =
+    isDev && (await cookies()).get(DEV_PREVIEW_COOKIE)?.value === "1";
+  const locked = comingSoon && !devPreview;
+
   return (
     <html
       lang="en"
@@ -146,8 +157,8 @@ export default async function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} ${futura.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        {comingSoon ? (
-          <ComingSoon heading={heading} message={message} />
+        {locked ? (
+          <ComingSoon heading={heading} message={message} showDevEntry={isDev} />
         ) : (
           <Providers>{children}</Providers>
         )}

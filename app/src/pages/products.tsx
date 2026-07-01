@@ -9,31 +9,6 @@ import { productPath, type Product } from "../data/products";
 import { MediaFill } from "../components/MediaFill";
 import type { MediaSlot } from "../data/home";
 
-// Maps filter checkbox category to product.category in the data
-const getFilterCategory = (prodCategory: string): string => {
-  const cat = prodCategory.toUpperCase();
-  if (cat === "HIGH JEWELLERY") return "Necklace";
-  if (cat === "BRACELETS") return "Bracelet";
-  if (cat === "EARRINGS") return "Earring";
-  if (cat === "BROOCHES") return "Brooch";
-  if (cat === "WATCHES") return "Watch";
-  if (cat === "RINGS") return "Ring";
-  return cat;
-};
-
-// Checks if product belongs to a collection based on substring match
-const matchesCollection = (prodName: string, collection: string): boolean => {
-  const normName = prodName
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "");
-  const normColl = collection
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "");
-  return normName.includes(normColl);
-};
-
 export default function Products({
   products,
   activeCategory,
@@ -52,7 +27,9 @@ export default function Products({
   const [selectedCategories, setSelectedCategories] = useState<string[]>(
     activeCategory ? [activeCategory] : [],
   );
-  const [selectedCollections, setSelectedCollections] = useState<string[]>([]);
+  const [selectedSubcategories, setSelectedSubcategories] = useState<string[]>(
+    [],
+  );
   const [sortBy, setSortBy] = useState<string>("recommended");
   const [availableOnline, setAvailableOnline] = useState<boolean>(false);
   const [mobileFilterOpen, setMobileFilterOpen] = useState<boolean>(false);
@@ -60,7 +37,26 @@ export default function Products({
 
   // Accordion open/close states
   const [categoryOpen, setCategoryOpen] = useState<boolean>(true);
-  const [collectionOpen, setCollectionOpen] = useState<boolean>(true);
+  const [subcategoryOpen, setSubcategoryOpen] = useState<boolean>(true);
+
+  // --- FILTER OPTIONS (data-driven) ---
+  // The Category / Sub-category facets are built from the catalogue itself, so
+  // they always match the two-level taxonomy the atelier sets in Admin (a piece's
+  // top-level `category` and its `subcategory`). Only values actually present on
+  // a product appear, so no facet ever matches zero results.
+  const categoryOptions = useMemo(() => {
+    const seen = new Set(
+      products.map((p) => p.category?.trim()).filter(Boolean) as string[],
+    );
+    return [...seen].sort((a, b) => a.localeCompare(b));
+  }, [products]);
+
+  const subcategoryOptions = useMemo(() => {
+    const seen = new Set(
+      products.map((p) => p.subcategory?.trim()).filter(Boolean) as string[],
+    );
+    return [...seen].sort((a, b) => a.localeCompare(b));
+  }, [products]);
 
   // --- PRODUCT LIST ---
   // Show the real admin-managed catalogue as-is (no mock duplication), so the
@@ -77,13 +73,15 @@ export default function Products({
   const filteredProducts = useMemo(() => {
     let result = [...allProducts];
 
-    // Category & Collection Filters (combined to match the mockup's duplicate selection logic)
-    const activeCats = [...selectedCategories, ...selectedCollections];
-    if (activeCats.length > 0) {
-      result = result.filter((p) => {
-        const mappedCat = getFilterCategory(p.category);
-        return activeCats.includes(mappedCat);
-      });
+    // Facets combine with AND across groups (category AND sub-category), OR within
+    // a group — standard faceted filtering against the real taxonomy fields.
+    if (selectedCategories.length > 0) {
+      result = result.filter((p) => selectedCategories.includes(p.category));
+    }
+    if (selectedSubcategories.length > 0) {
+      result = result.filter((p) =>
+        selectedSubcategories.includes(p.subcategory ?? ""),
+      );
     }
 
     // Online Availability Filter (mocked: items under $45k)
@@ -104,7 +102,7 @@ export default function Products({
   }, [
     allProducts,
     selectedCategories,
-    selectedCollections,
+    selectedSubcategories,
     availableOnline,
     sortBy,
   ]);
@@ -133,17 +131,17 @@ export default function Products({
     );
   };
 
-  const handleCollectionToggle = (collection: string) => {
-    setSelectedCollections((prev) =>
-      prev.includes(collection)
-        ? prev.filter((c) => c !== collection)
-        : [...prev, collection],
+  const handleSubcategoryToggle = (subcategory: string) => {
+    setSelectedSubcategories((prev) =>
+      prev.includes(subcategory)
+        ? prev.filter((c) => c !== subcategory)
+        : [...prev, subcategory],
     );
   };
 
   const clearAllFilters = () => {
     setSelectedCategories([]);
-    setSelectedCollections([]);
+    setSelectedSubcategories([]);
     setAvailableOnline(false);
     setSortBy("recommended");
   };
@@ -152,7 +150,7 @@ export default function Products({
   // the active category changes, reset the filter to it.
   useEffect(() => {
     setSelectedCategories(activeCategory ? [activeCategory] : []);
-    setSelectedCollections([]);
+    setSelectedSubcategories([]);
   }, [activeCategory]);
 
   return (
@@ -323,110 +321,100 @@ export default function Products({
             </div>
 
             {/* Accordion: Category */}
-            <div className="mt-6 border-b border-neutral-100 pb-6">
-              <button
-                onClick={() => setCategoryOpen(!categoryOpen)}
-                className="flex w-full items-center justify-between font-sans text-[11px] font-bold uppercase tracking-[0.25em] text-neutral-800"
-              >
-                <span>CATEGORY</span>
-                <svg
-                  className={`h-3 w-3 transform transition-transform duration-300 ${
-                    categoryOpen ? "" : "rotate-180"
-                  }`}
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  viewBox="0 0 24 24"
+            {categoryOptions.length > 0 && (
+              <div className="mt-6 border-b border-neutral-100 pb-6">
+                <button
+                  onClick={() => setCategoryOpen(!categoryOpen)}
+                  className="flex w-full items-center justify-between font-sans text-[11px] font-bold uppercase tracking-[0.25em] text-neutral-800"
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="m19.5 8.25-7.5 7.5-7.5-7.5"
-                  />
-                </svg>
-              </button>
+                  <span>CATEGORY</span>
+                  <svg
+                    className={`h-3 w-3 transform transition-transform duration-300 ${
+                      categoryOpen ? "" : "rotate-180"
+                    }`}
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="m19.5 8.25-7.5 7.5-7.5-7.5"
+                    />
+                  </svg>
+                </button>
 
-              {categoryOpen && (
-                <div className="mt-4 space-y-3 font-sans text-[11px] tracking-[0.1em] text-neutral-600 transition-all">
-                  {[
-                    "NECKLACE",
-                    "BRACELET",
-                    "EARRING",
-                    "BROOCH",
-                    "WATCH",
-                    "RING",
-                  ].map((cat) => (
-                    <label
-                      key={cat}
-                      className="flex items-center gap-3 cursor-pointer hover:text-neutral-900"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={selectedCategories.includes(cat)}
-                        onChange={() => handleCategoryToggle(cat)}
-                        className="h-3.5 w-3.5 appearance-none border border-neutral-300 rounded-xs checked:bg-gold-500 checked:border-gold-500 checked:after:content-['✓'] checked:after:text-[10px] checked:after:text-white checked:after:flex checked:after:items-center checked:after:justify-center transition-all focus:outline-none"
-                      />
-                      {cat}
-                    </label>
-                  ))}
-                </div>
-              )}
-            </div>
+                {categoryOpen && (
+                  <div className="mt-4 space-y-3 font-sans text-[11px] uppercase tracking-[0.1em] text-neutral-600 transition-all">
+                    {categoryOptions.map((cat) => (
+                      <label
+                        key={cat}
+                        className="flex items-center gap-3 cursor-pointer hover:text-neutral-900"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={selectedCategories.includes(cat)}
+                          onChange={() => handleCategoryToggle(cat)}
+                          className="h-3.5 w-3.5 appearance-none border border-neutral-300 rounded-xs checked:bg-gold-500 checked:border-gold-500 checked:after:content-['✓'] checked:after:text-[10px] checked:after:text-white checked:after:flex checked:after:items-center checked:after:justify-center transition-all focus:outline-none"
+                        />
+                        {cat}
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
 
-            {/* Accordion: Collection */}
-            <div className="mt-6 border-b border-neutral-100 pb-6">
-              <button
-                onClick={() => setCollectionOpen(!collectionOpen)}
-                className="flex w-full items-center justify-between font-sans text-[11px] font-bold uppercase tracking-[0.25em] text-neutral-800"
-              >
-                <span>COLLECTION</span>
-                <svg
-                  className={`h-3 w-3 transform transition-transform duration-300 ${
-                    collectionOpen ? "" : "rotate-180"
-                  }`}
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  viewBox="0 0 24 24"
+            {/* Accordion: Sub-category */}
+            {subcategoryOptions.length > 0 && (
+              <div className="mt-6 border-b border-neutral-100 pb-6">
+                <button
+                  onClick={() => setSubcategoryOpen(!subcategoryOpen)}
+                  className="flex w-full items-center justify-between font-sans text-[11px] font-bold uppercase tracking-[0.25em] text-neutral-800"
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="m19.5 8.25-7.5 7.5-7.5-7.5"
-                  />
-                </svg>
-              </button>
+                  <span>SUB-CATEGORY</span>
+                  <svg
+                    className={`h-3 w-3 transform transition-transform duration-300 ${
+                      subcategoryOpen ? "" : "rotate-180"
+                    }`}
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="m19.5 8.25-7.5 7.5-7.5-7.5"
+                    />
+                  </svg>
+                </button>
 
-              {collectionOpen && (
-                <div className="mt-4 space-y-3 font-sans text-[11px] tracking-[0.1em] text-neutral-600 transition-all">
-                  {[
-                    "NECKLACE",
-                    "BRACELET",
-                    "EARRING",
-                    "BROOCH",
-                    "WATCH",
-                    "RING",
-                  ].map((coll) => (
-                    <label
-                      key={coll}
-                      className="flex items-center gap-3 cursor-pointer hover:text-neutral-900"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={selectedCollections.includes(coll)}
-                        onChange={() => handleCollectionToggle(coll)}
-                        className="h-3.5 w-3.5 appearance-none border border-neutral-300 rounded-xs checked:bg-gold-500 checked:border-gold-500 checked:after:content-['✓'] checked:after:text-[10px] checked:after:text-white checked:after:flex checked:after:items-center checked:after:justify-center transition-all focus:outline-none"
-                      />
-                      {coll}
-                    </label>
-                  ))}
-                </div>
-              )}
-            </div>
+                {subcategoryOpen && (
+                  <div className="mt-4 space-y-3 font-sans text-[11px] uppercase tracking-[0.1em] text-neutral-600 transition-all">
+                    {subcategoryOptions.map((sub) => (
+                      <label
+                        key={sub}
+                        className="flex items-center gap-3 cursor-pointer hover:text-neutral-900"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={selectedSubcategories.includes(sub)}
+                          onChange={() => handleSubcategoryToggle(sub)}
+                          className="h-3.5 w-3.5 appearance-none border border-neutral-300 rounded-xs checked:bg-gold-500 checked:border-gold-500 checked:after:content-['✓'] checked:after:text-[10px] checked:after:text-white checked:after:flex checked:after:items-center checked:after:justify-center transition-all focus:outline-none"
+                        />
+                        {sub}
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Clear All */}
             {(selectedCategories.length > 0 ||
-              selectedCollections.length > 0 ||
+              selectedSubcategories.length > 0 ||
               availableOnline ||
               sortBy !== "recommended") && (
               <button
@@ -627,64 +615,54 @@ export default function Products({
             </div>
 
             {/* Category checkboxes (mobile) */}
-            <div className="mt-6 border-b border-neutral-100 pb-6">
-              <h4 className="font-sans text-[11px] font-bold uppercase tracking-wider text-neutral-800">
-                CATEGORY
-              </h4>
-              <div className="mt-4 space-y-3 font-sans text-xs tracking-wider text-neutral-600">
-                {[
-                  "NECKLACE",
-                  "BRACELET",
-                  "EARRING",
-                  "BROOCH",
-                  "WATCH",
-                  "RING",
-                ].map((cat) => (
-                  <label
-                    key={cat}
-                    className="flex items-center gap-3 cursor-pointer"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={selectedCategories.includes(cat)}
-                      onChange={() => handleCategoryToggle(cat)}
-                      className="h-4 w-4 border-neutral-300 rounded checked:bg-gold-500 checked:border-gold-500 text-gold-500 focus:ring-gold-500"
-                    />
-                    {cat}
-                  </label>
-                ))}
+            {categoryOptions.length > 0 && (
+              <div className="mt-6 border-b border-neutral-100 pb-6">
+                <h4 className="font-sans text-[11px] font-bold uppercase tracking-wider text-neutral-800">
+                  CATEGORY
+                </h4>
+                <div className="mt-4 space-y-3 font-sans text-xs uppercase tracking-wider text-neutral-600">
+                  {categoryOptions.map((cat) => (
+                    <label
+                      key={cat}
+                      className="flex items-center gap-3 cursor-pointer"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedCategories.includes(cat)}
+                        onChange={() => handleCategoryToggle(cat)}
+                        className="h-4 w-4 border-neutral-300 rounded checked:bg-gold-500 checked:border-gold-500 text-gold-500 focus:ring-gold-500"
+                      />
+                      {cat}
+                    </label>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
-            {/* Collection checkboxes (mobile) */}
-            <div className="mt-6 border-b border-neutral-100 pb-6">
-              <h4 className="font-sans text-[11px] font-bold uppercase tracking-wider text-neutral-800">
-                COLLECTION
-              </h4>
-              <div className="mt-4 space-y-3 font-sans text-xs tracking-wider text-neutral-600">
-                {[
-                  "NECKLACE",
-                  "BRACELET",
-                  "EARRING",
-                  "BROOCH",
-                  "WATCH",
-                  "RING",
-                ].map((coll) => (
-                  <label
-                    key={coll}
-                    className="flex items-center gap-3 cursor-pointer"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={selectedCollections.includes(coll)}
-                      onChange={() => handleCollectionToggle(coll)}
-                      className="h-4 w-4 border-neutral-300 rounded checked:bg-gold-500 checked:border-gold-500 text-gold-500 focus:ring-gold-500"
-                    />
-                    {coll}
-                  </label>
-                ))}
+            {/* Sub-category checkboxes (mobile) */}
+            {subcategoryOptions.length > 0 && (
+              <div className="mt-6 border-b border-neutral-100 pb-6">
+                <h4 className="font-sans text-[11px] font-bold uppercase tracking-wider text-neutral-800">
+                  SUB-CATEGORY
+                </h4>
+                <div className="mt-4 space-y-3 font-sans text-xs uppercase tracking-wider text-neutral-600">
+                  {subcategoryOptions.map((sub) => (
+                    <label
+                      key={sub}
+                      className="flex items-center gap-3 cursor-pointer"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedSubcategories.includes(sub)}
+                        onChange={() => handleSubcategoryToggle(sub)}
+                        className="h-4 w-4 border-neutral-300 rounded checked:bg-gold-500 checked:border-gold-500 text-gold-500 focus:ring-gold-500"
+                      />
+                      {sub}
+                    </label>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Drawer Actions */}
             <div className="mt-8 flex flex-col gap-3">
