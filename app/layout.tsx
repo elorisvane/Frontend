@@ -125,6 +125,11 @@ export const metadata: Metadata = {
     index: true,
     follow: true,
   },
+  // Google Search Console ownership verification — renders
+  // <meta name="google-site-verification" content="…" />
+  verification: {
+    google: "g20j9ZVgiz7j9f5WE6hM8rKm4eIc1h9j9alki9t-dTk",
+  },
 };
 
 export default async function RootLayout({
