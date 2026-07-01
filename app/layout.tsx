@@ -3,6 +3,9 @@ import { Geist, Geist_Mono } from "next/font/google";
 import localFont from "next/font/local";
 import "./globals.css";
 import Providers from "./src/components/Providers";
+import Analytics from "./src/components/Analytics";
+import ComingSoon from "./src/components/ComingSoon";
+import { getSiteSettings } from "./src/data/settings";
 import { SITE_URL, SITE_NAME, SITE_DESCRIPTION } from "./src/lib/site";
 
 const geistSans = Geist({
@@ -68,6 +71,11 @@ const futura = localFont({
   ],
 });
 
+// Read the Coming Soon flag fresh on every request so the Admin's on/off switch
+// takes effect within a single page load, and so the lock covers every route
+// (including otherwise-static pages like /about and /contact).
+export const dynamic = "force-dynamic";
+
 export const viewport: Viewport = {
   themeColor: "#0d0d0d",
   width: "device-width",
@@ -119,11 +127,13 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const { comingSoon, heading, message } = await getSiteSettings();
+
   return (
     <html
       lang="en"
@@ -131,7 +141,12 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} ${futura.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <Providers>{children}</Providers>
+        {comingSoon ? (
+          <ComingSoon heading={heading} message={message} />
+        ) : (
+          <Providers>{children}</Providers>
+        )}
+        <Analytics />
       </body>
     </html>
   );
