@@ -6,9 +6,11 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import { useWishlist } from "../lib/wishlist";
 import { productPath } from "../data/products";
+import { useCurrency } from "../components/CurrencyProvider";
 
 export default function Wishlist() {
   const { items, remove } = useWishlist();
+  const { format } = useCurrency();
 
   return (
     <div className="min-h-screen bg-white text-neutral-900 selection:bg-gold-200 selection:text-black">
@@ -76,7 +78,7 @@ export default function Wishlist() {
                     {item.name}
                   </h3>
                   <p className="mt-2 font-sans text-[12px] tracking-[0.15em] text-neutral-600">
-                    {item.price}
+                    {format(item.price)}
                   </p>
                 </Link>
 

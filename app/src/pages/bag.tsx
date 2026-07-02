@@ -8,10 +8,12 @@ import Footer from "../components/Footer";
 import CheckoutDetails from "../components/CheckoutDetails";
 import { useAuth } from "../lib/auth";
 import { useCart, formatCartTotal } from "../lib/cart";
+import { useCurrency } from "../components/CurrencyProvider";
 
 export default function Bag() {
   const { items, setQuantity, remove, clear } = useCart();
   const { user, loading } = useAuth();
+  const { format } = useCurrency();
 
   const [note, setNote] = useState("");
   const [step, setStep] = useState<"bag" | "checkout">("bag");
@@ -80,7 +82,7 @@ export default function Bag() {
                         {item.name}
                       </Link>
                       <span className="font-serif text-lg font-light tracking-[0.05em] text-neutral-800">
-                        {item.price}
+                        {format(item.price)}
                       </span>
                     </div>
                     {item.material && (
@@ -141,7 +143,7 @@ export default function Bag() {
                 <div className="flex justify-between font-sans text-[12px] tracking-[0.2em] text-neutral-500">
                   <span>SUBTOTAL</span>
                   <span className="font-serif text-lg font-light tracking-[0.05em] text-neutral-900">
-                    {total}
+                    {format(total)}
                   </span>
                 </div>
                 <p className="mt-3 font-sans text-[11px] leading-relaxed tracking-[0.05em] text-neutral-400">

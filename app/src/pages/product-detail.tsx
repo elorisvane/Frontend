@@ -9,6 +9,7 @@ import Footer from "../components/Footer";
 import { productPath, categorySlug, type Product } from "../data/products";
 import { useCart } from "../lib/cart";
 import { useWishlist } from "../lib/wishlist";
+import { useCurrency } from "../components/CurrencyProvider";
 import ProductReviews from "../components/ProductReviews";
 
 const VIDEO_RE = /\.(mp4|webm|mov)(\?.*)?$/i;
@@ -74,6 +75,7 @@ export default function ProductDetail({
 }: ProductDetailProps) {
   const { has, toggle } = useWishlist();
   const { add } = useCart();
+  const { format } = useCurrency();
   const router = useRouter();
   const saved = has(product.slug);
   const gallery = (
@@ -239,7 +241,7 @@ export default function ProductDetail({
             </p>
             <div className="mt-6 flex items-baseline gap-3">
               <span className="font-serif text-2xl font-medium tracking-[0.04em] text-neutral-900">
-                {product.price}
+                {format(product.price)}
               </span>
               <span className="font-sans text-[10px] tracking-[0.15em] text-neutral-400">
                 Including Taxes
@@ -356,7 +358,7 @@ export default function ProductDetail({
                     {p.name}
                   </h3>
                   <p className="mt-1.5 font-sans text-[12px] tracking-[0.12em] text-neutral-600">
-                    {p.price}
+                    {format(p.price)}
                   </p>
                 </Link>
               ))}

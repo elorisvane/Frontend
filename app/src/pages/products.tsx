@@ -7,6 +7,7 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import { productPath, type Product } from "../data/products";
 import { MediaFill } from "../components/MediaFill";
+import { useCurrency } from "../components/CurrencyProvider";
 import type { MediaSlot } from "../data/home";
 
 export default function Products({
@@ -34,6 +35,8 @@ export default function Products({
   const [availableOnline, setAvailableOnline] = useState<boolean>(false);
   const [mobileFilterOpen, setMobileFilterOpen] = useState<boolean>(false);
   const [viewMode, setViewMode] = useState<"grid" | "feed">("grid");
+
+  const { format } = useCurrency();
 
   // Accordion open/close states
   const [categoryOpen, setCategoryOpen] = useState<boolean>(true);
@@ -510,7 +513,7 @@ export default function Products({
                         </p>
                       </div>
                       <p className="mt-3 text-center font-sans text-[14px] font-light leading-[23px] tracking-normal text-neutral-700">
-                        {item.price}
+                        {format(item.price)}
                       </p>
                     </Link>
                   );

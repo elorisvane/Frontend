@@ -1,4 +1,5 @@
 import Link from "next/link";
+import CurrencySwitcher from "./CurrencySwitcher";
 
 const columns = [
   {
@@ -154,8 +155,8 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="mt-14 border-t border-white/10 pt-8 text-center">
-          <p className="font-sans text-[10px] tracking-[0.25em] text-white/40">
+        <div className="mt-14 flex flex-col items-center gap-5 border-t border-white/10 pt-8 md:flex-row md:justify-between">
+          <p className="order-2 text-center font-sans text-[10px] tracking-[0.25em] text-white/40 md:order-1 md:text-left">
             ÉLORIS, Inc. {new Date().getFullYear()} All rights reserved.{" "}
             <Link
               href="https://mobintix.app"
@@ -164,6 +165,7 @@ export default function Footer() {
               Mobintix Infotech
             </Link>
           </p>
+          <CurrencySwitcher className="order-1 md:order-2" />
         </div>
       </div>
     </footer>

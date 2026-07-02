@@ -9,6 +9,7 @@ import Footer from "../components/Footer";
 import PersonalDetails from "../components/account/PersonalDetails";
 import AddressBook from "../components/account/AddressBook";
 import { useAuth } from "../lib/auth";
+import { useCurrency } from "../components/CurrencyProvider";
 import { getMyOrders, type Order } from "../data/orders";
 import { getProducts, productPath, type Product } from "../data/products";
 import { upsertProfile, createAddress } from "../data/profile";
@@ -763,6 +764,7 @@ function OrderHistory() {
   const [orders, setOrders] = useState<Order[] | null>(null);
   const [catalog, setCatalog] = useState<Map<string, Product>>(new Map());
   const [error, setError] = useState<string | null>(null);
+  const { format } = useCurrency();
 
   useEffect(() => {
     let active = true;
@@ -866,7 +868,7 @@ function OrderHistory() {
                     </p>
                   </div>
                   <span className="shrink-0 font-sans text-[13px] tracking-[0.04em] text-neutral-600">
-                    {item.price}
+                    {format(item.price)}
                   </span>
                 </>
               );
@@ -888,7 +890,7 @@ function OrderHistory() {
           </ul>
           {order.total && (
             <p className="mt-3 text-right font-serif text-lg font-light tracking-[0.05em] text-neutral-800">
-              {order.total}
+              {format(order.total)}
             </p>
           )}
         </li>

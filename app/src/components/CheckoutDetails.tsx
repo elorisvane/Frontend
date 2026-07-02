@@ -11,6 +11,7 @@ import {
 } from "../data/profile";
 import { createOrder, toOrderAddress, type OrderAddress } from "../data/orders";
 import type { CartItem } from "../lib/cart";
+import { useCurrency } from "./CurrencyProvider";
 
 const inputClass =
   "w-full border-b border-neutral-300 bg-transparent py-3 font-sans text-sm tracking-[0.05em] text-neutral-900 placeholder-neutral-400 transition-colors focus:border-neutral-900 focus:outline-none";
@@ -88,6 +89,8 @@ export default function CheckoutDetails({
 
   const [placing, setPlacing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const { format } = useCurrency();
 
   useEffect(() => {
     let active = true;
@@ -303,14 +306,16 @@ export default function CheckoutDetails({
                     {item.material ? ` · ${item.material}` : ""} × {item.quantity}
                   </span>
                 </span>
-                <span className="shrink-0 text-neutral-500">{item.price}</span>
+                <span className="shrink-0 text-neutral-500">
+                  {format(item.price)}
+                </span>
               </li>
             ))}
           </ul>
           <div className="mt-6 flex justify-between border-t border-neutral-200 pt-5 font-sans text-[12px] tracking-[0.2em] text-neutral-500">
             <span>SUBTOTAL</span>
             <span className="font-serif text-lg font-light tracking-[0.05em] text-neutral-900">
-              {total}
+              {format(total)}
             </span>
           </div>
           {note && (

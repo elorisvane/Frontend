@@ -7,6 +7,7 @@ import Providers from "./src/components/Providers";
 import Analytics from "./src/components/Analytics";
 import ComingSoon, { DEV_PREVIEW_COOKIE } from "./src/components/ComingSoon";
 import { getSiteSettings } from "./src/data/settings";
+import { getRates, detectCurrency } from "./src/lib/currency.server";
 import { SITE_URL, SITE_NAME, SITE_DESCRIPTION } from "./src/lib/site";
 
 const geistSans = Geist({
@@ -150,6 +151,11 @@ export default async function RootLayout({
     isDev && (await cookies()).get(DEV_PREVIEW_COOKIE)?.value === "1";
   const locked = comingSoon && !devPreview;
 
+  // Display currency for this visitor + the USD-based rate table. Only needed
+  // when the storefront is actually shown (not behind the Coming Soon lock).
+  const rates = locked ? { USD: 1 } : await getRates();
+  const currencyCode = locked ? "USD" : await detectCurrency(rates);
+
   return (
     <html
       lang="en"
@@ -160,7 +166,9 @@ export default async function RootLayout({
         {locked ? (
           <ComingSoon heading={heading} message={message} showDevEntry={isDev} />
         ) : (
-          <Providers>{children}</Providers>
+          <Providers currencyCode={currencyCode} rates={rates}>
+            {children}
+          </Providers>
         )}
         <Analytics />
       </body>

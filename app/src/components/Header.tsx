@@ -19,6 +19,7 @@ import {
 import { getNavCategories, fallbackNav, type MegaSection } from "../data/nav";
 import { useCart } from "../lib/cart";
 import { useWishlist } from "../lib/wishlist";
+import CurrencySwitcher from "./CurrencySwitcher";
 
 interface HeaderProps {
   /** When true the header starts transparent over a hero and darkens on scroll.
@@ -221,6 +222,11 @@ export default function Header({
           <div
             className={`flex items-center gap-5 md:gap-7 ${lightActive ? "text-neutral-900" : "text-white"}`}
           >
+            <CurrencySwitcher
+              compact
+              tone={lightActive ? "light" : "dark"}
+              className="hidden md:inline-flex"
+            />
             <button
               onClick={() => setSearchOpen(true)}
               aria-label="Search"
