@@ -31,13 +31,24 @@ const columns = [
 const socials = [
   {
     label: "Instagram",
-    href: "#",
+    href: "https://www.instagram.com/eloris_offical",
     icon: (
       <>
         <rect x="3" y="3" width="18" height="18" rx="5" />
         <circle cx="12" cy="12" r="4" />
         <circle cx="17.5" cy="6.5" r="0.6" fill="currentColor" stroke="none" />
       </>
+    ),
+  },
+  {
+    label: "Facebook",
+    href: "#",
+    icon: (
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"
+      />
     ),
   },
   {
@@ -74,76 +85,79 @@ export default function Footer() {
     <>
       <NewsletterSignup />
       <footer className="border-t border-white/10 bg-black px-6 pb-10 pt-16 text-white md:px-12">
-      <div className="mx-auto max-w-[1600px]">
-        <div className="grid grid-cols-2 gap-x-8 gap-y-12 md:grid-cols-4 md:gap-12">
-          {/* Link columns */}
-          {columns.map((col) => (
-            <div key={col.title}>
+        <div className="mx-auto max-w-[1600px]">
+          <div className="grid grid-cols-2 gap-x-8 gap-y-12 md:grid-cols-4 md:gap-12">
+            {/* Link columns */}
+            {columns.map((col) => (
+              <div key={col.title}>
+                <h3 className="font-sans text-[11px] font-medium tracking-[0.3em] text-white/80">
+                  {col.title}
+                </h3>
+                <ul className="mt-5 space-y-3">
+                  {col.links.map((link, i) => (
+                    <li key={`${link.label}-${i}`}>
+                      <Link
+                        href={link.href}
+                        className="font-sans text-xs tracking-[0.1em] text-white/50 transition-colors hover:text-white"
+                      >
+                        {link.label}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+
+            {/* Follow us (newsletter now lives in the bar above the footer) */}
+            <div>
               <h3 className="font-sans text-[11px] font-medium tracking-[0.3em] text-white/80">
-                {col.title}
+                FOLLOW US
               </h3>
-              <ul className="mt-5 space-y-3">
-                {col.links.map((link, i) => (
-                  <li key={`${link.label}-${i}`}>
-                    <Link
-                      href={link.href}
-                      className="font-sans text-xs tracking-[0.1em] text-white/50 transition-colors hover:text-white"
-                    >
-                      {link.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
+              <p className="mt-5 max-w-xs font-sans text-xs leading-relaxed tracking-[0.1em] text-white/50">
+                Follow the maison for our latest collections, events and private
+                viewings.
+              </p>
 
-          {/* Follow us (newsletter now lives in the bar above the footer) */}
-          <div>
-            <h3 className="font-sans text-[11px] font-medium tracking-[0.3em] text-white/80">
-              FOLLOW US
-            </h3>
-            <p className="mt-5 max-w-xs font-sans text-xs leading-relaxed tracking-[0.1em] text-white/50">
-              Follow the maison for our latest collections, events and private
-              viewings.
-            </p>
-
-            {/* Social icons */}
-            <div className="mt-6 flex items-center gap-5">
-              {socials.map((s) => (
-                <Link
-                  key={s.label}
-                  href={s.href}
-                  aria-label={s.label}
-                  className="text-white/50 transition-colors hover:text-white"
-                >
-                  <svg
-                    className="h-[18px] w-[18px]"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.3"
-                    viewBox="0 0 24 24"
+              {/* Social icons */}
+              <div className="mt-6 flex items-center gap-5">
+                {socials.map((s) => (
+                  <Link
+                    key={s.label}
+                    href={s.href}
+                    aria-label={s.label}
+                    className="text-white/50 transition-colors hover:text-white"
                   >
-                    {s.icon}
-                  </svg>
-                </Link>
-              ))}
+                    <svg
+                      className="h-[18px] w-[18px]"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.3"
+                      viewBox="0 0 24 24"
+                    >
+                      {s.icon}
+                    </svg>
+                  </Link>
+                ))}
+              </div>
             </div>
           </div>
-        </div>
 
-        <div className="mt-14 flex flex-col items-center gap-5 border-t border-white/10 pt-8 md:flex-row md:justify-between">
-          <p className="order-2 text-center font-sans text-[10px] tracking-[0.25em] text-white/40 md:order-1 md:text-left">
-            ÉLORIS, Inc. {new Date().getFullYear()} All rights reserved.{" "}
-            <Link
-              href="https://mobintix.app"
-              className="font-sans text-[10px] tracking-[0.25em] text-white/40 underline"
-            >
-              Mobintix Infotech
-            </Link>
-          </p>
-          <CurrencySwitcher className="order-1 md:order-2" menuPlacement="up" />
+          <div className="mt-14 flex flex-col items-center gap-5 border-t border-white/10 pt-8 md:flex-row md:justify-between">
+            <p className="order-2 text-center font-sans text-[10px] tracking-[0.25em] text-white/40 md:order-1 md:text-left">
+              ÉLORIS, Inc. {new Date().getFullYear()} All rights reserved.{" "}
+              <Link
+                href="https://mobintix.app"
+                className="font-sans text-[10px] tracking-[0.25em] text-white/40 underline"
+              >
+                Mobintix Infotech
+              </Link>
+            </p>
+            <CurrencySwitcher
+              className="order-1 md:order-2"
+              menuPlacement="up"
+            />
+          </div>
         </div>
-      </div>
       </footer>
     </>
   );

@@ -83,10 +83,12 @@ export default function CurrencySwitcher({
     () => false,
   );
 
-  // Load flag SVGs the first time the menu opens — keeps the full flag set out
-  // of the initial bundle every page's header would otherwise pay for.
+  // Load flag SVGs after mount so the trigger shows the selected currency's flag
+  // right away (and the list is ready when opened). Still a separate lazy chunk
+  // — not in the initial JS every page's header would otherwise pay for; the
+  // browser caches it after the first page.
   useEffect(() => {
-    if (!open || flags) return;
+    if (flags) return;
     let active = true;
     import("country-flag-icons/react/3x2").then((m) => {
       if (active) setFlags(m as unknown as FlagMap);
@@ -94,7 +96,7 @@ export default function CurrencySwitcher({
     return () => {
       active = false;
     };
-  }, [open, flags]);
+  }, [flags]);
 
   // Close on outside click or Escape.
   useEffect(() => {
@@ -154,11 +156,13 @@ export default function CurrencySwitcher({
         aria-label="Currency"
         className={`inline-flex items-center gap-1.5 font-sans text-[11px] tracking-[0.15em] transition-colors focus:outline-none ${triggerText}`}
       >
-        {SelectedFlag ? (
-          <SelectedFlag className="h-3.5 w-5 shrink-0 rounded-[1px]" />
-        ) : (
-          <GlobeIcon className="h-3.5 w-3.5 shrink-0 opacity-60" />
-        )}
+        <span className="inline-flex h-3.5 w-5 shrink-0 items-center justify-center">
+          {SelectedFlag ? (
+            <SelectedFlag className="h-3.5 w-5 rounded-[1px]" />
+          ) : (
+            <GlobeIcon className="h-3.5 w-3.5 opacity-60" />
+          )}
+        </span>
         <span>{triggerLabel}</span>
         <svg
           className={`h-3.5 w-3.5 shrink-0 opacity-70 transition-transform ${
