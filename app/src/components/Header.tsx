@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useSyncExternalStore } from "react";
 import Image from "next/image";
 import Link from "next/link";
 // The header search runs on the client. It starts from the bundled catalogue
@@ -50,10 +50,13 @@ export default function Header({
   const catalogLoaded = useRef(false);
   const navLoaded = useRef(false);
   // The bag count comes from localStorage, which isn't available during SSR.
-  // Render the badge only after mount so the server/client markup matches.
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => setMounted(true), []);
+  // Render the badge only after hydration so the server/client markup matches.
+  // useSyncExternalStore stays hydration-safe without a setState-in-effect.
+  const mounted = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  );
 
   // Load the live catalogue once, the first time the shopper opens search.
   useEffect(() => {
@@ -327,7 +330,9 @@ export default function Header({
           <div className="overflow-hidden">
             <div className="mx-auto max-w-[1600px] px-6 pb-12 pt-7 md:px-12">
               {/* Tabs */}
-              <nav className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3 md:gap-x-12">
+              {/* Mobile: a single horizontal-scroll row (no ragged centred
+                  wrapping); desktop: centred wrap. Scrollbar hidden. */}
+              <nav className="flex items-center gap-x-6 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] md:flex-wrap md:justify-center md:gap-x-12 md:gap-y-3 md:overflow-visible md:pb-0 [&::-webkit-scrollbar]:hidden">
                 {sections.map((tab) => {
                   const active = activeTab === tab.id;
                   return (
@@ -336,13 +341,27 @@ export default function Header({
                       type="button"
                       onMouseEnter={() => setActiveTab(tab.id)}
                       onClick={() => setActiveTab(tab.id)}
-                      className={`relative pb-2 font-sans text-[12px] uppercase tracking-[0.15em] transition-colors ${
+                      className={`relative grid shrink-0 whitespace-nowrap pb-2 font-sans text-[12px] uppercase tracking-[0.15em] transition-colors ${
                         active
                           ? "text-neutral-900"
                           : "text-neutral-500 hover:text-neutral-900"
                       }`}
                     >
-                      {tab.label}
+                      {/* Invisible bold copy reserves the active (bold) width so
+                          hovering between tabs doesn't nudge the row. */}
+                      <span
+                        aria-hidden
+                        className="invisible col-start-1 row-start-1 text-center font-semibold"
+                      >
+                        {tab.label}
+                      </span>
+                      <span
+                        className={`col-start-1 row-start-1 text-center ${
+                          active ? "font-semibold" : "font-normal"
+                        }`}
+                      >
+                        {tab.label}
+                      </span>
                       {active && (
                         <span className="absolute inset-x-0 -bottom-px h-px bg-neutral-900" />
                       )}
