@@ -1,5 +1,6 @@
 import Link from "next/link";
 import CurrencySwitcher from "./CurrencySwitcher";
+import NewsletterSignup from "./NewsletterSignup";
 
 const columns = [
   {
@@ -70,7 +71,9 @@ const socials = [
 
 export default function Footer() {
   return (
-    <footer className="border-t border-white/10 bg-black px-6 pb-10 pt-16 text-white md:px-12">
+    <>
+      <NewsletterSignup />
+      <footer className="border-t border-white/10 bg-black px-6 pb-10 pt-16 text-white md:px-12">
       <div className="mx-auto max-w-[1600px]">
         <div className="grid grid-cols-2 gap-x-8 gap-y-12 md:grid-cols-4 md:gap-12">
           {/* Link columns */}
@@ -94,42 +97,15 @@ export default function Footer() {
             </div>
           ))}
 
-          {/* News / newsletter */}
+          {/* Follow us (newsletter now lives in the bar above the footer) */}
           <div>
             <h3 className="font-sans text-[11px] font-medium tracking-[0.3em] text-white/80">
-              NEWS
+              FOLLOW US
             </h3>
             <p className="mt-5 max-w-xs font-sans text-xs leading-relaxed tracking-[0.1em] text-white/50">
-              Subscribe to the newsletter for news of our latest collections,
-              events and private viewings.
+              Follow the maison for our latest collections, events and private
+              viewings.
             </p>
-            <form className="mt-5 flex items-center border-b border-white/30 pb-2">
-              <input
-                type="email"
-                required
-                placeholder="Email address"
-                className="w-full bg-transparent font-sans text-xs tracking-[0.15em] text-white placeholder-white/40 focus:outline-none"
-              />
-              <button
-                type="submit"
-                aria-label="Subscribe"
-                className="ml-3 text-white/70 transition-colors hover:text-white"
-              >
-                <svg
-                  className="h-4 w-4"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.4"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M5 12h14m-6-6 6 6-6 6"
-                  />
-                </svg>
-              </button>
-            </form>
 
             {/* Social icons */}
             <div className="mt-6 flex items-center gap-5">
@@ -165,9 +141,10 @@ export default function Footer() {
               Mobintix Infotech
             </Link>
           </p>
-          <CurrencySwitcher className="order-1 md:order-2" />
+          <CurrencySwitcher className="order-1 md:order-2" menuPlacement="up" />
         </div>
       </div>
-    </footer>
+      </footer>
+    </>
   );
 }

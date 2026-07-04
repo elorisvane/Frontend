@@ -8,15 +8,39 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import PersonalDetails from "../components/account/PersonalDetails";
 import AddressBook from "../components/account/AddressBook";
+import PhoneCountrySelect from "../components/PhoneCountrySelect";
 import { useAuth } from "../lib/auth";
 import { useCurrency } from "../components/CurrencyProvider";
 import { getMyOrders, type Order } from "../data/orders";
 import { getProducts, productPath, type Product } from "../data/products";
-import { upsertProfile, createAddress } from "../data/profile";
-import { COUNTRIES, postalLabel } from "../lib/countries";
+import { upsertProfile } from "../data/profile";
+import { setSessionPersistence } from "../lib/supabase";
+import { COUNTRIES } from "../lib/countries";
 
-const inputClass =
-  "w-full border-b border-neutral-300 bg-transparent py-3 font-sans text-sm tracking-[0.05em] text-neutral-900 placeholder-neutral-400 transition-colors focus:border-neutral-900 focus:outline-none";
+// Honorifics offered on the register form (matches the account dashboard).
+const TITLES = ["Mr", "Mrs", "Ms", "Mx", "Dr"];
+
+// Register password rule shown in the hint: min 8, no spaces, and at least one
+// uppercase, one lowercase, one digit and one special character.
+const PASSWORD_RE = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9\s])\S{8,}$/;
+const PASSWORD_HINT =
+  "Min. 8 characters with no space, uppercase letter, lowercase letter, number, special character.";
+
+// Boxed field — full border, matches the login mockup. `inputBase` omits the
+// width so it can sit in a flex row (select + input) without `w-full` forcing
+// a sibling to overflow; `inputClass` is the standard full-width field.
+const inputBase =
+  "border border-neutral-300 bg-transparent px-4 py-3.5 font-sans text-sm tracking-[0.05em] text-neutral-900 placeholder-neutral-400 transition-colors focus:border-neutral-900 focus:outline-none";
+const inputClass = `w-full ${inputBase}`;
+
+// Solid primary action. NB: `gold-*` is a monochrome greyscale on this site, so
+// the mockup's olive button renders as solid black to stay on-palette.
+const primaryBtnClass =
+  "w-full bg-neutral-900 px-10 py-3.5 font-sans text-[11px] tracking-[0.3em] text-white transition-colors hover:bg-neutral-700 disabled:cursor-not-allowed disabled:opacity-50";
+
+// Bordered secondary action (Google, Create account, Back).
+const outlineBtnClass =
+  "flex w-full items-center justify-center gap-3 border border-neutral-300 px-6 py-3.5 font-sans text-[11px] tracking-[0.25em] text-neutral-700 transition-colors hover:border-neutral-900 hover:text-neutral-900 disabled:cursor-not-allowed disabled:opacity-50";
 
 type Mode = "signin" | "register";
 
@@ -94,7 +118,7 @@ function ForgotPasswordForm({ onBack }: { onBack: () => void }) {
           <button
             type="submit"
             disabled={pending}
-            className="w-full border border-neutral-900 px-10 py-3 font-sans text-[11px] tracking-[0.3em] text-neutral-900 transition-colors hover:bg-neutral-900 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+            className={primaryBtnClass}
           >
             {pending ? "SENDING…" : "SEND RESET LINK"}
           </button>
@@ -128,7 +152,7 @@ function EyeButton({
       onClick={onToggle}
       aria-label={shown ? "Hide password" : "Show password"}
       aria-pressed={shown}
-      className="absolute right-0 top-1/2 -translate-y-1/2 text-neutral-400 transition-colors hover:text-neutral-900"
+      className="absolute right-4 top-1/2 -translate-y-1/2 text-neutral-400 transition-colors hover:text-neutral-900"
     >
       {shown ? (
         <svg
@@ -234,7 +258,7 @@ function ResetPasswordPanel() {
             <button
               type="submit"
               disabled={pending}
-              className="w-full border border-neutral-900 px-10 py-3 font-sans text-[11px] tracking-[0.3em] text-neutral-900 transition-colors hover:bg-neutral-900 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
+              className={primaryBtnClass}
             >
               {pending ? "UPDATING…" : "UPDATE PASSWORD"}
             </button>
@@ -298,19 +322,6 @@ function GoogleIcon() {
   );
 }
 
-function AppleIcon() {
-  return (
-    <svg
-      className="h-4 w-4"
-      viewBox="0 0 24 24"
-      fill="currentColor"
-      aria-hidden
-    >
-      <path d="M16.36 12.78c.02 2.36 2.07 3.15 2.1 3.16-.02.06-.33 1.13-1.09 2.24-.66.96-1.34 1.91-2.42 1.93-1.06.02-1.4-.63-2.61-.63-1.21 0-1.59.61-2.59.65-1.04.04-1.83-1.04-2.5-2-1.37-2-.91-5.96 1.25-7.45.56-.5 1.13-.78 1.84-.78 1.13-.02 2.2.76 2.89.76.69 0 1.99-.94 3.35-.8.57.02 2.17.23 3.2 1.74-.08.05-1.91 1.12-1.89 3.33M14.13 7.5c.57-.69.95-1.65.85-2.6-.82.03-1.81.55-2.4 1.24-.53.61-1 1.59-.87 2.53.91.07 1.85-.47 2.42-1.17" />
-    </svg>
-  );
-}
-
 function AuthPanel() {
   const { signIn, signUp, signInWithProvider } = useAuth();
   const router = useRouter();
@@ -322,14 +333,24 @@ function AuthPanel() {
   );
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
-  const [country, setCountry] = useState("US");
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [remember, setRemember] = useState(true);
+  // Register password validation, shown inline by the relevant field.
+  const [pwError, setPwError] = useState(false); // strength rule not met
+  const [confirmError, setConfirmError] = useState(false); // confirm ≠ password
+  // Register-only fields that need controlled state (native selects can't be
+  // read from FormData with a styled placeholder / derived flag).
+  const [title, setTitle] = useState("");
+  const [dialCountry, setDialCountry] = useState("US");
 
   function switchMode(next: Mode) {
     setMode(next);
     setForgot(false);
     setError(null);
     setNotice(null);
+    setPwError(false);
+    setConfirmError(false);
   }
 
   async function handleOAuth(provider: "google" | "apple") {
@@ -338,6 +359,8 @@ function AuthPanel() {
     setNotice(null);
     setOauthPending(provider);
     try {
+      // Social sign-ins stay signed in across restarts.
+      setSessionPersistence(true);
       // On success the browser is redirected to the provider, so control does
       // not return here; we only reach the catch on a configuration error.
       await signInWithProvider(provider);
@@ -350,17 +373,36 @@ function AuthPanel() {
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (pending) return;
-    setError(null);
-    setNotice(null);
-    setPending(true);
 
     const data = new FormData(e.currentTarget);
     const email = String(data.get("email") ?? "");
     const password = String(data.get("password") ?? "");
 
+    // Register-only client validation, before we hit the network. Failures show
+    // inline by the relevant password field rather than as a detached banner.
+    if (mode === "register") {
+      const confirm = String(data.get("confirmPassword") ?? "");
+      if (!PASSWORD_RE.test(password)) {
+        setPwError(true);
+        setConfirmError(false);
+        return;
+      }
+      if (password !== confirm) {
+        setPwError(false);
+        setConfirmError(true);
+        return;
+      }
+      setPwError(false);
+      setConfirmError(false);
+    }
+
+    setError(null);
+    setNotice(null);
+    setPending(true);
+
     try {
       if (mode === "signin") {
-        await signIn(email, password);
+        await signIn(email, password, remember);
         // On success the auth listener flips this page to the dashboard; honour
         // a ?redirect target (e.g. back to the bag) when one was passed.
         const redirect = new URLSearchParams(window.location.search).get(
@@ -373,13 +415,13 @@ function AuthPanel() {
       } else {
         const firstName = String(data.get("firstName") ?? "");
         const lastName = String(data.get("lastName") ?? "");
-        const phone = String(data.get("phone") ?? "").trim();
-        const line1 = String(data.get("line1") ?? "").trim();
-        const city = String(data.get("city") ?? "").trim();
-        const region = String(data.get("state") ?? "").trim();
-        const postalCode = String(data.get("postalCode") ?? "").trim();
-        const countryCode = String(data.get("country") ?? "US");
+        const localNumber = String(data.get("phone") ?? "").trim();
+        const dial = COUNTRIES.find((c) => c.code === dialCountry)?.dial ?? "";
+        // Store the phone in international form, e.g. "+44 7911 123456".
+        const phone = localNumber ? `${dial} ${localNumber}`.trim() : "";
 
+        // New accounts stay signed in across restarts.
+        setSessionPersistence(true);
         const { needsConfirmation } = await signUp({
           firstName,
           lastName,
@@ -389,30 +431,22 @@ function AuthPanel() {
 
         if (needsConfirmation) {
           setNotice(
-            "Almost there — check your inbox to confirm your email, then sign in. You can add your address from your account afterwards.",
+            "Almost there — check your inbox to confirm your email, then sign in.",
           );
           setMode("signin");
         } else {
-          // Session is active — persist the optional contact details + first
-          // address. Non-fatal: the account exists regardless, and they can
-          // complete these from their account later.
+          // Session is active — persist the title + phone onto the profile.
+          // Non-fatal: the account exists regardless, and these can be edited
+          // from the account page later.
           try {
-            if (phone) await upsertProfile({ firstName, lastName, phone });
-            if (line1 || city || postalCode) {
-              await createAddress({
-                recipientName: `${firstName} ${lastName}`.trim() || null,
-                phone: phone || null,
-                line1: line1 || null,
-                city: city || null,
-                state: region || null,
-                postalCode: postalCode || null,
-                country: countryCode,
-                isDefaultShipping: true,
-                isDefaultBilling: true,
-              });
-            }
+            await upsertProfile({
+              title: title || null,
+              firstName,
+              lastName,
+              phone: phone || null,
+            });
           } catch {
-            // Ignore — the address book can be filled in from the account page.
+            // Ignore — details can be completed from the account page.
           }
           const redirect = new URLSearchParams(window.location.search).get(
             "redirect",
@@ -442,237 +476,282 @@ function AuthPanel() {
         </p>
       </div>
 
-      <div className="mx-auto mt-16 max-w-md">
+      <div
+        className={`mx-auto mt-16 ${
+          mode === "register" ? "max-w-3xl" : "max-w-md"
+        }`}
+      >
         {forgot ? (
           <ForgotPasswordForm onBack={() => setForgot(false)} />
-        ) : (
+        ) : mode === "signin" ? (
+          /* ------------------------------- SIGN IN ------------------------------- */
           <>
-        <div className="flex justify-center gap-10 border-b border-neutral-200 pb-5">
-          <button
-            onClick={() => switchMode("signin")}
-            className={`font-sans text-[11px] tracking-[0.3em] transition-colors ${
-              mode === "signin"
-                ? "text-neutral-900"
-                : "text-neutral-400 hover:text-neutral-900"
-            }`}
-          >
-            SIGN IN
-          </button>
-          <button
-            onClick={() => switchMode("register")}
-            className={`font-sans text-[11px] tracking-[0.3em] transition-colors ${
-              mode === "register"
-                ? "text-neutral-900"
-                : "text-neutral-400 hover:text-neutral-900"
-            }`}
-          >
-            REGISTER
-          </button>
-        </div>
+            {notice && (
+              <p className="mb-8 text-center font-sans text-[12px] leading-relaxed tracking-[0.1em] text-neutral-700">
+                {notice}
+              </p>
+            )}
 
-        {notice && (
-          <p className="mt-8 text-center font-sans text-[12px] leading-relaxed tracking-[0.1em] text-gold-600">
-            {notice}
-          </p>
-        )}
-
-        {/* Social sign-in */}
-        <div className="mt-10 space-y-3">
-          <button
-            type="button"
-            onClick={() => handleOAuth("google")}
-            disabled={oauthPending !== null}
-            className="flex w-full items-center justify-center gap-3 border border-neutral-300 px-6 py-3 font-sans text-[11px] tracking-[0.25em] text-neutral-700 transition-colors hover:border-neutral-900 hover:text-neutral-900 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            <GoogleIcon />
-            {oauthPending === "google"
-              ? "REDIRECTING…"
-              : "CONTINUE WITH GOOGLE"}
-          </button>
-          <button
-            type="button"
-            onClick={() => handleOAuth("apple")}
-            disabled={oauthPending !== null}
-            className="flex w-full items-center justify-center gap-3 border border-neutral-300 px-6 py-3 font-sans text-[11px] tracking-[0.25em] text-neutral-700 transition-colors hover:border-neutral-900 hover:text-neutral-900 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            <AppleIcon />
-            {oauthPending === "apple" ? "REDIRECTING…" : "CONTINUE WITH APPLE"}
-          </button>
-        </div>
-
-        <div className="my-8 flex items-center gap-4">
-          <span className="h-px flex-1 bg-neutral-200" />
-          <span className="font-sans text-[10px] uppercase tracking-[0.3em] text-neutral-400">
-            or
-          </span>
-          <span className="h-px flex-1 bg-neutral-200" />
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-7">
-          {mode === "register" && (
-            <div className="grid grid-cols-1 gap-7 sm:grid-cols-2">
+            <form onSubmit={handleSubmit} className="space-y-5">
               <input
                 required
-                name="firstName"
-                type="text"
-                placeholder="First name"
+                name="email"
+                type="email"
+                autoComplete="email"
+                placeholder="Email address"
                 className={inputClass}
               />
-              <input
-                required
-                name="lastName"
-                type="text"
-                placeholder="Last name"
-                className={inputClass}
-              />
+              <div className="relative">
+                <input
+                  required
+                  name="password"
+                  type={showPassword ? "text" : "password"}
+                  minLength={6}
+                  autoComplete="current-password"
+                  placeholder="Password"
+                  className={`${inputClass} pr-12`}
+                />
+                <EyeButton
+                  shown={showPassword}
+                  onToggle={() => setShowPassword((s) => !s)}
+                />
+              </div>
+
+              <div className="flex items-center justify-between pt-1">
+                <label className="flex cursor-pointer items-center gap-2.5 font-sans text-[12px] tracking-[0.06em] text-neutral-600">
+                  <input
+                    type="checkbox"
+                    checked={remember}
+                    onChange={(e) => setRemember(e.target.checked)}
+                    className="h-4 w-4 accent-neutral-900"
+                  />
+                  Remember me
+                </label>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setError(null);
+                    setNotice(null);
+                    setForgot(true);
+                  }}
+                  className="font-sans text-[12px] tracking-[0.06em] text-neutral-900 underline underline-offset-4 transition-colors hover:text-neutral-500"
+                >
+                  Forgot password?
+                </button>
+              </div>
+
+              {error && (
+                <p className="font-sans text-[12px] tracking-[0.08em] text-red-600">
+                  {error}
+                </p>
+              )}
+
+              <button type="submit" disabled={pending} className={primaryBtnClass}>
+                {pending ? "PLEASE WAIT…" : "LOGIN"}
+              </button>
+            </form>
+
+            <div className="my-6 flex items-center gap-4">
+              <span className="h-px flex-1 bg-neutral-200" />
+              <span className="font-sans text-[10px] uppercase tracking-[0.3em] text-neutral-400">
+                or
+              </span>
+              <span className="h-px flex-1 bg-neutral-200" />
             </div>
-          )}
-          <input
-            required
-            name="email"
-            type="email"
-            autoComplete="email"
-            placeholder="Email address"
-            className={inputClass}
-          />
-          <div className="relative">
-            <input
-              required
-              name="password"
-              type={showPassword ? "text" : "password"}
-              minLength={6}
-              autoComplete={
-                mode === "signin" ? "current-password" : "new-password"
-              }
-              placeholder="Password"
-              className={`${inputClass} pr-10`}
-            />
             <button
               type="button"
-              onClick={() => setShowPassword((s) => !s)}
-              aria-label={showPassword ? "Hide password" : "Show password"}
-              aria-pressed={showPassword}
-              className="absolute right-0 top-1/2 -translate-y-1/2 text-neutral-400 transition-colors hover:text-neutral-900"
+              onClick={() => handleOAuth("google")}
+              disabled={oauthPending !== null}
+              className={outlineBtnClass}
             >
-              {showPassword ? (
-                <svg
-                  className="h-5 w-5"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.4"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M3 3l18 18" />
-                  <path d="M10.6 5.1A10.8 10.8 0 0 1 12 5c6.4 0 10 7 10 7a17.6 17.6 0 0 1-3 3.9" />
-                  <path d="M6.6 6.6A17.2 17.2 0 0 0 2 12s3.6 7 10 7a10.3 10.3 0 0 0 4.2-.9" />
-                  <path d="M9.9 9.9a3 3 0 0 0 4.2 4.2" />
-                </svg>
-              ) : (
-                <svg
-                  className="h-5 w-5"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.4"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z" />
-                  <circle cx="12" cy="12" r="3" />
-                </svg>
-              )}
+              <GoogleIcon />
+              {oauthPending === "google"
+                ? "REDIRECTING…"
+                : "CONTINUE WITH GOOGLE"}
             </button>
-          </div>
+            <button
+              type="button"
+              onClick={() => switchMode("register")}
+              className={`${outlineBtnClass} mt-3`}
+            >
+              CREATE AN ACCOUNT
+            </button>
+          </>
+        ) : (
+          /* --------------------------- CREATE AN ACCOUNT --------------------------- */
+          <>
+            {notice && (
+              <p className="mb-8 text-center font-sans text-[12px] leading-relaxed tracking-[0.1em] text-neutral-700">
+                {notice}
+              </p>
+            )}
 
-          {mode === "signin" && (
-            <div className="-mt-3 text-right">
+            <form onSubmit={handleSubmit} className="space-y-8">
+              <div className="grid gap-8 md:grid-cols-2 md:gap-0 md:divide-x md:divide-neutral-200">
+                {/* Left — who you are */}
+                <div className="space-y-5 md:pr-10">
+                  <div className="flex gap-4">
+                    <select
+                      name="title"
+                      value={title}
+                      onChange={(e) => setTitle(e.target.value)}
+                      aria-label="Title"
+                      className={`${inputBase} w-24 shrink-0 ${
+                        title ? "" : "text-neutral-400"
+                      }`}
+                    >
+                      <option value="">Title</option>
+                      {TITLES.map((t) => (
+                        <option key={t} value={t} className="text-neutral-900">
+                          {t}
+                        </option>
+                      ))}
+                    </select>
+                    <input
+                      required
+                      name="firstName"
+                      type="text"
+                      autoComplete="given-name"
+                      placeholder="First Name*"
+                      className={`${inputBase} min-w-0 flex-1`}
+                    />
+                  </div>
+                  <input
+                    required
+                    name="lastName"
+                    type="text"
+                    autoComplete="family-name"
+                    placeholder="Last Name*"
+                    className={inputClass}
+                  />
+                  <div className="flex gap-4">
+                    <PhoneCountrySelect
+                      value={dialCountry}
+                      onChange={setDialCountry}
+                    />
+                    <input
+                      required
+                      name="phone"
+                      type="tel"
+                      autoComplete="tel-national"
+                      placeholder="Phone Number*"
+                      className={`${inputBase} min-w-0 flex-1`}
+                    />
+                  </div>
+                  <input
+                    required
+                    name="email"
+                    type="email"
+                    autoComplete="email"
+                    placeholder="Email address*"
+                    className={inputClass}
+                  />
+                </div>
+
+                {/* Right — password + consent */}
+                <div className="space-y-5 md:pl-10">
+                  <div>
+                    <div className="relative">
+                      <input
+                        required
+                        name="password"
+                        type={showPassword ? "text" : "password"}
+                        autoComplete="new-password"
+                        placeholder="Set Password*"
+                        onInput={() => pwError && setPwError(false)}
+                        aria-invalid={pwError}
+                        className={`${inputClass} pr-12 ${
+                          pwError ? "border-red-400" : ""
+                        }`}
+                      />
+                      <EyeButton
+                        shown={showPassword}
+                        onToggle={() => setShowPassword((s) => !s)}
+                      />
+                    </div>
+                    <p
+                      className={`mt-2 flex items-start gap-2 font-sans text-[11px] leading-relaxed tracking-[0.02em] ${
+                        pwError ? "text-red-600" : "text-neutral-400"
+                      }`}
+                    >
+                      <span aria-hidden className="mt-px">
+                        ⓘ
+                      </span>
+                      <span>{PASSWORD_HINT}</span>
+                    </p>
+                  </div>
+                  <div>
+                    <div className="relative">
+                      <input
+                        required
+                        name="confirmPassword"
+                        type={showConfirm ? "text" : "password"}
+                        autoComplete="new-password"
+                        placeholder="Confirm Password*"
+                        onInput={() => confirmError && setConfirmError(false)}
+                        aria-invalid={confirmError}
+                        className={`${inputClass} pr-12 ${
+                          confirmError ? "border-red-400" : ""
+                        }`}
+                      />
+                      <EyeButton
+                        shown={showConfirm}
+                        onToggle={() => setShowConfirm((s) => !s)}
+                      />
+                    </div>
+                    {confirmError && (
+                      <p className="mt-2 font-sans text-[11px] leading-relaxed tracking-[0.02em] text-red-600">
+                        Passwords do not match.
+                      </p>
+                    )}
+                  </div>
+                  <p className="font-sans text-[12px] leading-relaxed tracking-[0.03em] text-neutral-500">
+                    By clicking submit you are accepting the{" "}
+                    <Link
+                      href="/terms-of-service"
+                      className="font-medium text-neutral-900 underline underline-offset-2 transition-colors hover:text-neutral-600"
+                    >
+                      terms and conditions
+                    </Link>{" "}
+                    as well as the{" "}
+                    <Link
+                      href="/privacy-policy"
+                      className="font-medium text-neutral-900 underline underline-offset-2 transition-colors hover:text-neutral-600"
+                    >
+                      privacy policy
+                    </Link>
+                    .
+                  </p>
+                </div>
+              </div>
+
+              {error && (
+                <p className="text-center font-sans text-[12px] tracking-[0.08em] text-red-600">
+                  {error}
+                </p>
+              )}
+
+              <div className="flex justify-center pt-2">
+                <button
+                  type="submit"
+                  disabled={pending}
+                  className={`${primaryBtnClass} max-w-xs`}
+                >
+                  {pending ? "PLEASE WAIT…" : "SUBMIT"}
+                </button>
+              </div>
+            </form>
+
+            <p className="mt-6 text-center font-sans text-[12px] tracking-[0.06em] text-neutral-500">
+              Already have an account?{" "}
               <button
                 type="button"
-                onClick={() => {
-                  setError(null);
-                  setNotice(null);
-                  setForgot(true);
-                }}
-                className="font-sans text-[11px] tracking-[0.08em] text-neutral-400 underline underline-offset-4 transition-colors hover:text-neutral-900"
+                onClick={() => switchMode("signin")}
+                className="text-neutral-900 underline underline-offset-4 transition-colors hover:text-neutral-500"
               >
-                Forgot your password?
+                Sign in
               </button>
-            </div>
-          )}
-
-          {mode === "register" && (
-            <div className="space-y-7 border-t border-neutral-200 pt-7">
-              <input
-                name="phone"
-                type="tel"
-                autoComplete="tel"
-                placeholder="Phone"
-                className={inputClass}
-              />
-              <input
-                name="line1"
-                autoComplete="address-line1"
-                placeholder="Address"
-                className={inputClass}
-              />
-              <div className="grid grid-cols-1 gap-7 sm:grid-cols-2">
-                <input
-                  name="city"
-                  autoComplete="address-level2"
-                  placeholder="City"
-                  className={inputClass}
-                />
-                <input
-                  name="state"
-                  autoComplete="address-level1"
-                  placeholder="State / Region"
-                  className={inputClass}
-                />
-              </div>
-              <div className="grid grid-cols-1 gap-7 sm:grid-cols-2">
-                <select
-                  name="country"
-                  value={country}
-                  onChange={(e) => setCountry(e.target.value)}
-                  autoComplete="country"
-                  className={inputClass}
-                >
-                  {COUNTRIES.map((c) => (
-                    <option key={c.code} value={c.code}>
-                      {c.name}
-                    </option>
-                  ))}
-                </select>
-                <input
-                  name="postalCode"
-                  autoComplete="postal-code"
-                  placeholder={postalLabel(country)}
-                  className={inputClass}
-                />
-              </div>
-            </div>
-          )}
-
-          {error && (
-            <p className="font-sans text-[12px] tracking-[0.08em] text-red-600">
-              {error}
             </p>
-          )}
-
-          <button
-            type="submit"
-            disabled={pending}
-            className="w-full border border-neutral-900 px-10 py-3 font-sans text-[11px] tracking-[0.3em] text-neutral-900 transition-colors hover:bg-neutral-900 hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            {pending
-              ? "PLEASE WAIT…"
-              : mode === "signin"
-                ? "SIGN IN"
-                : "CREATE ACCOUNT"}
-          </button>
-        </form>
           </>
         )}
       </div>

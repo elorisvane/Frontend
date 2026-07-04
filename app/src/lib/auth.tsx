@@ -9,7 +9,7 @@ import {
   type ReactNode,
 } from "react";
 import type { Session, User } from "@supabase/supabase-js";
-import { getSupabase } from "./supabase";
+import { getSupabase, setSessionPersistence } from "./supabase";
 
 interface RegisterInput {
   firstName: string;
@@ -25,7 +25,8 @@ interface AuthContextValue {
   loading: boolean;
   /** Convenience: best-available display name for the user. */
   displayName: string | null;
-  signIn: (email: string, password: string) => Promise<void>;
+  /** Sign in. `remember` keeps the session across browser restarts (default). */
+  signIn: (email: string, password: string, remember?: boolean) => Promise<void>;
   /** Begin an OAuth sign-in (Google / Apple). Redirects the browser away. */
   signInWithProvider: (provider: "google" | "apple") => Promise<void>;
   /** Returns whether the account still needs email confirmation before sign-in. */
@@ -82,9 +83,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       loading,
       displayName: meta?.full_name || meta?.first_name || user?.email || null,
 
-      async signIn(email, password) {
+      async signIn(email, password, remember = true) {
         const supabase = getSupabase();
         if (!supabase) throw new Error(NOT_CONFIGURED);
+        setSessionPersistence(remember);
         const { error } = await supabase.auth.signInWithPassword({
           email,
           password,
