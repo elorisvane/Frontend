@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { subscribeToNewsletter } from "../data/newsletter";
+import { subscribeToNewsletter } from "../actions/newsletter";
 
 /**
  * Newsletter subscribe bar shown above the footer. On submit it saves the email
@@ -22,8 +22,9 @@ export default function NewsletterSignup() {
     setPending(true);
     setError(null);
     try {
-      await subscribeToNewsletter(clean);
-      setDone(true);
+      const result = await subscribeToNewsletter(clean);
+      if (result.ok) setDone(true);
+      else setError(result.error ?? "Could not subscribe just now. Please try again.");
     } catch {
       setError("Could not subscribe just now. Please try again.");
     } finally {
