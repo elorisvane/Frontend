@@ -116,7 +116,20 @@ export function titleCase(label: string): string {
     .replace(/\b\p{L}/gu, (c) => c.toUpperCase());
 }
 
-/** Canonical storefront path for a piece: /products/<category>/<slug>. */
-export function productPath(p: { category: string; slug: string }): string {
-  return `/products/${categorySlug(p.category)}/${p.slug}`;
+/**
+ * Canonical storefront path for a piece. Pieces that carry a sub-category get a
+ * three-level path — /products/<category>/<subcategory>/<slug> — otherwise the
+ * two-level /products/<category>/<slug>. The sub-category segment is slugified
+ * the same way as the category.
+ */
+export function productPath(p: {
+  category: string;
+  subcategory?: string;
+  slug: string;
+}): string {
+  const cat = categorySlug(p.category);
+  const sub = p.subcategory?.trim();
+  return sub
+    ? `/products/${cat}/${categorySlug(sub)}/${p.slug}`
+    : `/products/${cat}/${p.slug}`;
 }
