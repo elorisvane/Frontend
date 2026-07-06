@@ -105,6 +105,17 @@ export function categorySlug(category: string): string {
   return category.toLowerCase().trim().replace(/\s+/g, "-");
 }
 
+/**
+ * Display-cases a taxonomy label, e.g. "EARRING" -> "Earring",
+ * "DROP EARRINGS" -> "Drop Earrings". Values stored all-caps in Admin read as
+ * shouting in the storefront, so we normalise them to title case for display.
+ */
+export function titleCase(label: string): string {
+  return label
+    .toLowerCase()
+    .replace(/\b\p{L}/gu, (c) => c.toUpperCase());
+}
+
 /** Canonical storefront path for a piece: /products/<category>/<slug>. */
 export function productPath(p: { category: string; slug: string }): string {
   return `/products/${categorySlug(p.category)}/${p.slug}`;

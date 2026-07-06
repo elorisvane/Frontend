@@ -29,10 +29,14 @@ export async function generateMetadata({
 
 export default async function CategoryPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ category: string }>;
+  searchParams: Promise<{ sub?: string | string[] }>;
 }) {
   const { category } = await params;
+  const { sub } = await searchParams;
+  const activeSubcategory = Array.isArray(sub) ? sub[0] : sub;
   const [products, media] = await Promise.all([
     getProducts(),
     getProductsMedia(),
@@ -51,6 +55,7 @@ export default async function CategoryPage({
     <Products
       products={products}
       activeCategory={label}
+      activeSubcategory={activeSubcategory}
       heroMedia={media.hero}
       gridMedia={media.grid}
     />

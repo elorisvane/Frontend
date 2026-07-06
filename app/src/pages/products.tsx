@@ -11,12 +11,15 @@ import type { MediaSlot } from "../data/home";
 export default function Products({
   products,
   activeCategory,
+  activeSubcategory,
   heroMedia,
   gridMedia,
 }: {
   products: Product[];
   /** When set (category route), the grid is pre-filtered to this category. */
   activeCategory?: string;
+  /** When set (?sub= on the category route), the sub-category facet is pre-selected. */
+  activeSubcategory?: string;
   /** Admin-managed top hero banner (image or video); falls back to bundled art. */
   heroMedia?: MediaSlot | null;
   /** Admin-managed in-grid lifestyle banner (image or video). */
@@ -27,7 +30,7 @@ export default function Products({
     activeCategory ? [activeCategory] : [],
   );
   const [selectedSubcategories, setSelectedSubcategories] = useState<string[]>(
-    [],
+    activeSubcategory ? [activeSubcategory] : [],
   );
   const [sortBy, setSortBy] = useState<string>("recommended");
   const [availableOnline, setAvailableOnline] = useState<boolean>(false);

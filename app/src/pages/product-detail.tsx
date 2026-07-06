@@ -6,7 +6,12 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-import { productPath, categorySlug, type Product } from "../data/products";
+import {
+  productPath,
+  categorySlug,
+  titleCase,
+  type Product,
+} from "../data/products";
 import { useCart } from "../lib/cart";
 import { useWishlist } from "../lib/wishlist";
 import { useCurrency } from "../components/CurrencyProvider";
@@ -88,6 +93,25 @@ function MediaCarousel({ items, alt }: { items: string[]; alt: string }) {
     // this row actually overflows and isn't already at the relevant edge, so
     // the page keeps scrolling normally otherwise. Trackpad horizontal gestures
     // (deltaX-dominant) are left alone.
+    //
+    // A raw `scrollLeft += deltaY` jumps a full wheel notch (~100px) per tick,
+    // which reads as a jerky "step" scroll. Instead we accumulate wheel input
+    // into a target and ease the real scroll position toward it each frame, so
+    // the row glides smoothly to rest.
+    let target = el.scrollLeft;
+    let raf: number | null = null;
+
+    const step = () => {
+      const diff = target - el.scrollLeft;
+      if (Math.abs(diff) < 0.5) {
+        el.scrollLeft = target;
+        raf = null;
+        return;
+      }
+      el.scrollLeft += diff * 0.18; // easing factor — lower = smoother/slower
+      raf = requestAnimationFrame(step);
+    };
+
     const onWheel = (e: WheelEvent) => {
       if (el.scrollWidth <= el.clientWidth) return;
       if (Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return;
@@ -97,7 +121,12 @@ function MediaCarousel({ items, alt }: { items: string[]; alt: string }) {
         e.deltaY > 0;
       if (atStart || atEnd) return;
       e.preventDefault();
-      el.scrollLeft += e.deltaY;
+      // Re-sync the target to the live position when idle, so momentum from a
+      // native/trackpad scroll or the arrow buttons isn't overwritten.
+      if (raf === null) target = el.scrollLeft;
+      const max = el.scrollWidth - el.clientWidth;
+      target = Math.max(0, Math.min(target + e.deltaY, max));
+      if (raf === null) raf = requestAnimationFrame(step);
     };
 
     el.addEventListener("scroll", update, { passive: true });
@@ -107,6 +136,7 @@ function MediaCarousel({ items, alt }: { items: string[]; alt: string }) {
       el.removeEventListener("scroll", update);
       el.removeEventListener("wheel", onWheel);
       window.removeEventListener("resize", update);
+      if (raf !== null) cancelAnimationFrame(raf);
     };
   }, [items.length]);
 
@@ -430,21 +460,27 @@ export default function ProductDetail({
       <Header light />
 
       <section className="mx-auto max-w-[1500px] px-6 pb-12 pt-18 md:px-12">
-        {/* Breadcrumb */}
+        {/* Breadcrumb — Category / Sub-category / product name. The sub-category
+            crumb only appears when the piece has one, and links back to the
+            category listing pre-filtered to that sub-category. */}
         <nav className="font-sans text-[17px] font-normal leading-[31px] tracking-normal text-neutral-400">
-          <Link
-            href="/products"
-            className="transition-colors hover:text-neutral-900"
-          >
-            CREATIONS
-          </Link>
-          <span className="mx-2">/</span>
           <Link
             href={`/products/${categorySlug(product.category)}`}
             className="transition-colors hover:text-neutral-900"
           >
             {product.category}
           </Link>
+          {product.subcategory ? (
+            <>
+              <span className="mx-2">/</span>
+              <Link
+                href={`/products/${categorySlug(product.category)}?sub=${encodeURIComponent(product.subcategory)}`}
+                className="transition-colors hover:text-neutral-900"
+              >
+                {titleCase(product.subcategory)}
+              </Link>
+            </>
+          ) : null}
           <span className="mx-2">/</span>
           <span className="text-neutral-600">{product.name}</span>
         </nav>
@@ -527,7 +563,7 @@ export default function ProductDetail({
           <div className="flex flex-col md:sticky md:top-24 md:self-start">
             {/* Category pill — connecting line — wishlist */}
             <div className="flex items-center">
-              <span className="inline-flex shrink-0 items-center rounded-full bg-neutral-900 px-5 py-2 font-sans text-[16px] font-normal lowercase leading-none tracking-normal text-white">
+              <span className="inline-flex shrink-0 items-center rounded-full bg-neutral-900 px-5 py-2 font-sans text-[16px] font-normal leading-none tracking-normal text-white">
                 {product.category}
               </span>
               <span className="h-px flex-1 bg-neutral-500" aria-hidden />
