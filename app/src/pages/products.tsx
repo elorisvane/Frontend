@@ -1,13 +1,11 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
-import Image from "next/image";
-import Link from "next/link";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
-import { productPath, type Product } from "../data/products";
+import ProductCard from "../components/ProductCard";
+import { type Product } from "../data/products";
 import { MediaFill } from "../components/MediaFill";
-import { useCurrency } from "../components/CurrencyProvider";
 import type { MediaSlot } from "../data/home";
 
 export default function Products({
@@ -35,8 +33,6 @@ export default function Products({
   const [availableOnline, setAvailableOnline] = useState<boolean>(false);
   const [mobileFilterOpen, setMobileFilterOpen] = useState<boolean>(false);
   const [viewMode, setViewMode] = useState<"grid" | "feed">("grid");
-
-  const { format } = useCurrency();
 
   // Accordion open/close states
   const [categoryOpen, setCategoryOpen] = useState<boolean>(true);
@@ -486,37 +482,8 @@ export default function Products({
                     );
                   }
 
-                  // Normal Product Card
-                  return (
-                    <Link
-                      key={item.id}
-                      href={productPath(item)}
-                      className="group flex h-full flex-col justify-between text-center"
-                    >
-                      <div>
-                        {/* Aspect block for standard square/rectangular card */}
-                        <div className="relative aspect-square overflow-hidden bg-neutral-50">
-                          <Image
-                            src={item.image}
-                            alt={item.name}
-                            fill
-                            quality={90}
-                            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                            className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
-                          />
-                        </div>
-                        <h2 className="mt-5 text-center font-sans text-[20px] font-normal leading-[23px] tracking-normal text-neutral-800 transition-colors group-hover:text-neutral-500">
-                          {item.name}
-                        </h2>
-                        <p className="mt-2 text-center font-sans text-[14px] font-light leading-[23px] tracking-normal text-neutral-400">
-                          {item.tagline}
-                        </p>
-                      </div>
-                      <p className="mt-3 text-center font-sans text-[14px] font-light leading-[23px] tracking-normal text-neutral-700">
-                        {format(item.price)}
-                      </p>
-                    </Link>
-                  );
+                  // Normal Product Card (image carousel + wishlist heart)
+                  return <ProductCard key={item.id} item={item} />;
                 })}
               </div>
             )}
