@@ -73,7 +73,6 @@ function MediaCarousel({ items, alt }: { items: string[]; alt: string }) {
   const scrollerRef = useRef<HTMLDivElement>(null);
   const [canLeft, setCanLeft] = useState(false);
   const [canRight, setCanRight] = useState(false);
-  const [zoomIndex, setZoomIndex] = useState<number | null>(null);
 
   useEffect(() => {
     const el = scrollerRef.current;
@@ -124,15 +123,12 @@ function MediaCarousel({ items, alt }: { items: string[]; alt: string }) {
     <div className="relative">
       <div
         ref={scrollerRef}
-        className="flex snap-x snap-proximity gap-2 overflow-x-auto px-2 pb-1 md:gap-3 md:px-3 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className="flex snap-x snap-proximity gap-2 overflow-x-auto pb-1 md:gap-3 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         {items.map((src, i) => (
-          <button
+          <div
             key={`${src}-${i}`}
-            type="button"
-            onClick={() => setZoomIndex(i)}
-            aria-label="Zoom image"
-            className="relative aspect-[3/4] w-[80%] shrink-0 cursor-zoom-in snap-start overflow-hidden bg-neutral-100 sm:w-[48%] lg:w-[32%]"
+            className="relative aspect-[3/4] w-[80%] shrink-0 snap-start overflow-hidden bg-neutral-100 sm:w-[48%] lg:w-[32%]"
           >
             <Media
               src={src}
@@ -141,7 +137,7 @@ function MediaCarousel({ items, alt }: { items: string[]; alt: string }) {
               sizes="(max-width: 640px) 80vw, (max-width: 1024px) 48vw, 32vw"
               className="object-cover object-center"
             />
-          </button>
+          </div>
         ))}
       </div>
 
@@ -181,15 +177,6 @@ function MediaCarousel({ items, alt }: { items: string[]; alt: string }) {
           <path d="m9 6 6 6-6 6" />
         </svg>
       </button>
-
-      {zoomIndex !== null && (
-        <Lightbox
-          items={items}
-          index={zoomIndex}
-          alt={alt}
-          onClose={() => setZoomIndex(null)}
-        />
-      )}
     </div>
   );
 }
@@ -658,34 +645,40 @@ export default function ProductDetail({
           (trackpad swipe, mouse wheel, or the desktop arrow buttons). */}
       {modelMedia.length > 0 && (
         <section className="pb-2">
-          <MediaCarousel items={modelMedia} alt={product.name} />
+          <div className="mx-auto max-w-[1500px] px-6 md:px-12">
+            <MediaCarousel items={modelMedia} alt={product.name} />
+          </div>
         </section>
       )}
 
       {/* Related */}
       {related.length > 0 && (
-        <section className="px-6 py-20 md:px-12">
-          <div className="mx-auto max-w-[1500px]">
+        <section className="py-20">
+          <div className="mx-auto max-w-[1500px] px-6 md:px-12">
             <h2 className="font-serif text-2xl font-medium tracking-[0.02em] md:text-3xl">
               You may also like
             </h2>
             <div className="mt-10 grid grid-cols-2 gap-4 lg:grid-cols-4 lg:gap-6">
               {related.map((p) => (
-                <Link key={p.slug} href={productPath(p)} className="group">
-                  <div className="relative aspect-square overflow-hidden bg-neutral-100">
+                <Link
+                  key={p.slug}
+                  href={productPath(p)}
+                  className="group block bg-neutral-100 p-6"
+                >
+                  <div className="relative aspect-square overflow-hidden">
                     <Image
                       src={p.image}
                       alt={p.name}
                       fill
                       quality={100}
                       sizes="(max-width: 640px) 50vw, 25vw"
-                      className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                      className="object-contain transition-transform duration-700 ease-out group-hover:scale-105"
                     />
                   </div>
-                  <h3 className="mt-4 font-serif text-base font-medium leading-snug tracking-[0.03em]">
+                  <h3 className="mt-5 font-sans text-[13px] font-normal leading-relaxed tracking-[0.04em] text-neutral-800">
                     {p.name}
                   </h3>
-                  <p className="mt-1.5 font-sans text-[12px] tracking-[0.12em] text-neutral-600">
+                  <p className="mt-1.5 font-sans text-[12px] tracking-[0.05em] text-neutral-500">
                     {format(p.price)}
                   </p>
                 </Link>
