@@ -33,7 +33,10 @@ export default function ProductCard({ item }: { item: Product }) {
           <Link
             href={href}
             aria-label={item.name}
-            className="block h-full w-full"
+            // `relative`: a `fill` Image is absolutely positioned, so its
+            // immediate parent must be positioned. Without this it escapes the
+            // Link and sizes itself against the card wrapper instead.
+            className="relative block h-full w-full"
           >
             <Image
               src={images[index]}
