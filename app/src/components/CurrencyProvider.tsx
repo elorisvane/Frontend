@@ -8,14 +8,19 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { CURRENCY_COOKIE, convertPrice, type Rates } from "../lib/currency";
+import {
+  CURRENCY_COOKIE,
+  SUPPORTED_CURRENCIES,
+  convertPrice,
+  type Rates,
+} from "../lib/currency";
 
 interface CurrencyContextValue {
   /** Active ISO-4217 currency code, e.g. "EUR". */
   code: string;
-  /** USD-based rate table (all supported currencies). */
+  /** USD-based rate table (supported currencies only). */
   rates: Rates;
-  /** Sorted list of currency codes we have a rate for (for the switcher). */
+  /** Currency codes offered in the switcher, in display order. */
   available: string[];
   /** Switch currency; persists the choice for later server renders. */
   setCurrency: (code: string) => void;
@@ -49,8 +54,10 @@ export default function CurrencyProvider({
     document.cookie = `${CURRENCY_COOKIE}=${next}; path=/; max-age=31536000; samesite=lax`;
   }, []);
 
+  // Curated order (USD first), not alphabetical — and only codes we actually
+  // hold a rate for, so a currency can never be offered that we can't price.
   const available = useMemo(
-    () => Object.keys(rates).sort((a, b) => a.localeCompare(b)),
+    () => SUPPORTED_CURRENCIES.filter((c) => typeof rates[c] === "number"),
     [rates],
   );
 

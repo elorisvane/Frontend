@@ -8,7 +8,9 @@ import { cookies, headers } from "next/headers";
 import {
   CURRENCY_COOKIE,
   DEFAULT_CURRENCY,
+  SUPPORTED_CURRENCIES,
   currencyForCountry,
+  isSupportedCurrency,
   type Rates,
 } from "./currency";
 
@@ -18,8 +20,15 @@ const RATES_ENDPOINT = "https://open.er-api.com/v6/latest/USD";
 const RATES_TTL_SECONDS = 6 * 60 * 60;
 
 /**
- * Live USD-based exchange rates. Fails open to `{ USD: 1 }` so the storefront
- * simply shows USD (never breaks) if the FX source is down or misconfigured.
+ * Live USD-based exchange rates, narrowed to the currencies we sell in.
+ *
+ * The provider returns ~160 currencies; this whole table is serialised into
+ * every page for the client-side switcher, so keeping only the supported ones
+ * both shrinks that payload and means an unsupported code can never be
+ * selected or priced anywhere downstream.
+ *
+ * Fails open to `{ USD: 1 }` so the storefront simply shows USD (never breaks)
+ * if the FX source is down or misconfigured.
  */
 export async function getRates(): Promise<Rates> {
   try {
@@ -32,7 +41,15 @@ export async function getRates(): Promise<Rates> {
       rates?: Rates;
     };
     if (data.result !== "success" || !data.rates?.USD) return { USD: 1 };
-    return data.rates;
+
+    const supported: Rates = { USD: 1 };
+    for (const code of SUPPORTED_CURRENCIES) {
+      const rate = data.rates[code];
+      if (typeof rate === "number" && Number.isFinite(rate) && rate > 0) {
+        supported[code] = rate;
+      }
+    }
+    return supported;
   } catch {
     return { USD: 1 };
   }
@@ -55,8 +72,12 @@ async function requestCountry(): Promise<string | null> {
  * for, so conversion is always defined.
  */
 export async function detectCurrency(rates: Rates): Promise<string> {
-  const override = (await cookies()).get(CURRENCY_COOKIE)?.value;
-  if (override && rates[override]) return override;
+  const override = (await cookies()).get(CURRENCY_COOKIE)?.value?.toUpperCase();
+  // A cookie set before the currency list was narrowed (say "JPY") is ignored
+  // rather than honoured — it is no longer selectable, so it must not be shown.
+  if (override && isSupportedCurrency(override) && rates[override]) {
+    return override;
+  }
 
   const byCountry = currencyForCountry(await requestCountry());
   return rates[byCountry] ? byCountry : DEFAULT_CURRENCY;

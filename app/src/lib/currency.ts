@@ -11,6 +11,18 @@ export type Rates = Record<string, number>;
 
 export const DEFAULT_CURRENCY = "USD";
 
+/**
+ * The only currencies the maison sells in. This is the single source of truth:
+ * the switcher lists exactly these, `getRates` keeps only these, and any other
+ * currency (from geo-IP or a stale cookie) falls back to USD. Array order is the
+ * order shown in the switcher, so the default sits first.
+ */
+export const SUPPORTED_CURRENCIES = ["USD", "CAD", "EUR", "AED", "INR"];
+
+export function isSupportedCurrency(code: string | null | undefined): boolean {
+  return !!code && SUPPORTED_CURRENCIES.includes(code.toUpperCase());
+}
+
 /** Cookie holding an explicit currency override chosen in the switcher. */
 export const CURRENCY_COOKIE = "eloris-currency";
 
@@ -19,24 +31,25 @@ export const CURRENCY_COOKIE = "eloris-currency";
 const FORMAT_LOCALE = "en-US";
 
 /**
- * ISO-3166 alpha-2 country → ISO-4217 currency. Broad but not exhaustive; any
- * country not listed falls back to USD. Used to pick a sensible default from the
- * visitor's geo-IP country header — the shopper can always override it.
+ * ISO-3166 alpha-2 country → ISO-4217 currency, restricted to the currencies we
+ * actually sell in (see SUPPORTED_CURRENCIES). Used to pick a sensible default
+ * from the visitor's geo-IP country header; the shopper can always override it.
+ *
+ * Only countries whose currency we support are listed — everyone else (Japan,
+ * the UK, Australia …) is shown USD, because offering a shopper a currency the
+ * switcher can't even select would be worse than showing the default.
  */
 export const COUNTRY_CURRENCY: Record<string, string> = {
-  US: "USD", GB: "GBP", IE: "EUR", FR: "EUR", DE: "EUR", IT: "EUR", ES: "EUR",
-  NL: "EUR", BE: "EUR", PT: "EUR", AT: "EUR", FI: "EUR", GR: "EUR", LU: "EUR",
-  SK: "EUR", SI: "EUR", EE: "EUR", LV: "EUR", LT: "EUR", CY: "EUR", MT: "EUR",
-  CH: "CHF", SE: "SEK", NO: "NOK", DK: "DKK", PL: "PLN", CZ: "CZK", HU: "HUF",
-  RO: "RON", BG: "BGN", HR: "EUR", IS: "ISK",
-  IN: "INR", AE: "AED", SA: "SAR", QA: "QAR", KW: "KWD", BH: "BHD", OM: "OMR",
-  IL: "ILS", TR: "TRY", EG: "EGP", PK: "PKR", BD: "BDT", LK: "LKR", NP: "NPR",
-  SG: "SGD", HK: "HKD", JP: "JPY", CN: "CNY", KR: "KRW", TW: "TWD", TH: "THB",
-  MY: "MYR", ID: "IDR", PH: "PHP", VN: "VND", MO: "MOP",
-  AU: "AUD", NZ: "NZD",
-  CA: "CAD", MX: "MXN", BR: "BRL", AR: "ARS", CL: "CLP", CO: "COP", PE: "PEN",
-  ZA: "ZAR", NG: "NGN", KE: "KES", GH: "GHS", MA: "MAD", DZ: "DZD", TN: "TND",
-  RU: "RUB", UA: "UAH",
+  US: "USD",
+  CA: "CAD",
+  IN: "INR",
+  AE: "AED",
+  // The euro area.
+  AT: "EUR", BE: "EUR", HR: "EUR", CY: "EUR", EE: "EUR", FI: "EUR", FR: "EUR",
+  DE: "EUR", GR: "EUR", IE: "EUR", IT: "EUR", LV: "EUR", LT: "EUR", LU: "EUR",
+  MT: "EUR", NL: "EUR", PT: "EUR", SK: "EUR", SI: "EUR", ES: "EUR",
+  // Microstates that use the euro.
+  AD: "EUR", MC: "EUR", SM: "EUR", VA: "EUR",
 };
 
 /**
@@ -52,10 +65,11 @@ export function parseUsd(price: string | number): number | null {
   return Number.isFinite(value) ? value : null;
 }
 
-/** Currency for a country code, defaulting to USD. */
+/** Currency for a country code, defaulting to USD. Never returns an unsupported code. */
 export function currencyForCountry(country: string | null | undefined): string {
   if (!country) return DEFAULT_CURRENCY;
-  return COUNTRY_CURRENCY[country.toUpperCase()] ?? DEFAULT_CURRENCY;
+  const code = COUNTRY_CURRENCY[country.toUpperCase()];
+  return isSupportedCurrency(code) ? code : DEFAULT_CURRENCY;
 }
 
 /**

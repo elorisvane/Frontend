@@ -5,6 +5,7 @@ import { cookies } from "next/headers";
 import "./globals.css";
 import Providers from "./src/components/Providers";
 import Analytics from "./src/components/Analytics";
+import Track from "./src/components/Track";
 import ComingSoon, { DEV_PREVIEW_COOKIE } from "./src/components/ComingSoon";
 import { getSiteSettings } from "./src/data/settings";
 import { getRates, detectCurrency } from "./src/lib/currency.server";
@@ -168,6 +169,9 @@ export default async function RootLayout({
         ) : (
           <Providers currencyCode={currencyCode} rates={rates}>
             {children}
+            {/* Inside the unlocked branch: views of the Coming Soon lock are not
+                storefront traffic and would inflate Live View. */}
+            <Track />
           </Providers>
         )}
         <Analytics />

@@ -46,9 +46,9 @@ function GlobeIcon({ className }: { className?: string }) {
 }
 
 /**
- * Currency picker — lists every currency we hold a rate for, each with its flag.
- * Changing it re-prices the whole storefront instantly (client-side) and
- * remembers the choice.
+ * Currency picker — lists the currencies the maison sells in (see
+ * SUPPORTED_CURRENCIES), each with its flag. Changing it re-prices the whole
+ * storefront instantly (client-side) and remembers the choice.
  *
  * `tone` matches the surrounding surface (light/dark). `compact` shows just the
  * 3-letter code in the trigger (header); otherwise the full "EUR — Euro" label.

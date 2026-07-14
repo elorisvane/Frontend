@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
+import Link from "next/link";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 import ProductCard from "../components/ProductCard";
-import { type Product } from "../data/products";
+import { type Product, categorySlug, titleCase } from "../data/products";
 import { MediaFill } from "../components/MediaFill";
 import type { MediaSlot } from "../data/home";
 
@@ -148,12 +149,12 @@ export default function Products({
     setSortBy("recommended");
   };
 
-  // Keep the grid in sync with the category route (/products/<category>): when
-  // the active category changes, reset the filter to it.
+  // Keep the grid in sync with the route (/products/<category>?sub=<subcategory>):
+  // when the active category or sub-category changes, reset the facets to match.
   useEffect(() => {
     setSelectedCategories(activeCategory ? [activeCategory] : []);
-    setSelectedSubcategories([]);
-  }, [activeCategory]);
+    setSelectedSubcategories(activeSubcategory ? [activeSubcategory] : []);
+  }, [activeCategory, activeSubcategory]);
 
   return (
     <div className="min-h-screen bg-white text-neutral-900 selection:bg-gold-200 selection:text-black">
@@ -178,13 +179,30 @@ export default function Products({
         <div className="flex items-end justify-between border-b border-neutral-200 pb-5 md:gap-10">
           {/* Breadcrumb (aligns above the sidebar on desktop) */}
           <nav className="hidden min-w-[240px] shrink-0 whitespace-nowrap text-[12px] tracking-[0.2em] text-neutral-400 md:block">
-            <span className="cursor-pointer hover:text-neutral-900">Home</span>
+            <Link href="/" className="hover:text-neutral-900">
+              Home
+            </Link>
             <span className="mx-2">|</span>
-            <span className="cursor-pointer hover:text-neutral-900">
-              High Jewelry
-            </span>
-            <span className="mx-2">|</span>
-            <span className="font-medium text-neutral-900">All creations</span>
+            {activeCategory ? (
+              <>
+                <Link
+                  href={`/products/${categorySlug(activeCategory)}`}
+                  className="hover:text-neutral-900"
+                >
+                  {titleCase(activeCategory)}
+                </Link>
+                <span className="mx-2">|</span>
+                <span className="font-medium text-neutral-900">
+                  {activeSubcategory
+                    ? titleCase(activeSubcategory)
+                    : "All creations"}
+                </span>
+              </>
+            ) : (
+              <span className="font-medium text-neutral-900">
+                All creations
+              </span>
+            )}
           </nav>
 
           {/* Count + view controls (aligns above the grid on desktop) */}
