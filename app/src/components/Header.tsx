@@ -17,6 +17,7 @@ import {
 // stored in Supabase. We start from the bundled fallback (instant, offline-safe)
 // and swap in the live menu on mount so the bar reflects the admin directly.
 import { getNavCategories, fallbackNav, type MegaSection } from "../data/nav";
+import { useAuth } from "../lib/auth";
 import { useCart } from "../lib/cart";
 import { useWishlist } from "../lib/wishlist";
 import CurrencySwitcher from "./CurrencySwitcher";
@@ -35,6 +36,7 @@ export default function Header({
 }: HeaderProps) {
   const { count } = useCart();
   const { count: wishlistCount } = useWishlist();
+  const { user, displayName } = useAuth();
   const [isScrolled, setIsScrolled] = useState(false);
   // The hamburger opens the category mega-menu as a dropdown under the header.
   const [menuOpen, setMenuOpen] = useState(false);
@@ -124,6 +126,13 @@ export default function Header({
     return () => window.removeEventListener("keydown", handleKey);
   }, [menuOpen]);
 
+  // The session is resolved in the browser, so the avatar can only be rendered
+  // after hydration — gate it on `mounted` to keep the server markup matching.
+  const initial =
+    mounted && user
+      ? ((displayName ?? user.email ?? "").trim()[0] ?? "").toUpperCase()
+      : "";
+
   const solid = !transparent || isScrolled;
   // The header reads "light" (white background, dark content) on inner pages and
   // whenever the mega-menu is open, so the dropdown stays legible over the hero.
@@ -171,6 +180,30 @@ export default function Header({
     setQuery("");
   }
 
+  // Rendered twice, shown once: beside the hamburger on mobile, in the icon row
+  // from md up. Balancing the two sides is what lets the wordmark stay centred
+  // and full-size on a phone — see the bar's comment below.
+  const searchButton = (visibility: string) => (
+    <button
+      onClick={() => setSearchOpen(true)}
+      aria-label="Search"
+      className={`transition-colors ${visibility} ${
+        lightActive ? "hover:text-neutral-500" : "hover:text-white/70"
+      }`}
+    >
+      <svg
+        className="h-5 w-5"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.2"
+        viewBox="0 0 24 24"
+      >
+        <circle cx="11" cy="11" r="7" />
+        <path strokeLinecap="round" d="m20 20-3.5-3.5" />
+      </svg>
+    </button>
+  );
+
   return (
     <>
       <header
@@ -178,89 +211,121 @@ export default function Header({
           menuOpen
             ? "bg-white text-neutral-900 py-4"
             : light
-              ? "bg-white/95 text-neutral-900 border-b border-neutral-100 py-4 shadow-xs"
+              ? // Fully opaque, not bg-white/95: the header is fixed over the
+                // hero, and even 5% translucency let the art behind it ghost
+                // through the wordmark. The dark branch below can stay
+                // translucent because backdrop-blur softens what shows through.
+                "bg-white text-neutral-900 border-b border-neutral-100 py-4 shadow-xs"
               : solid
                 ? "bg-black/70 text-white py-4 backdrop-blur-md"
                 : "bg-gradient-to-b from-black/30 to-transparent text-white py-6"
         }`}
       >
-        <div className="mx-auto flex max-w-[1600px] items-center justify-between px-6 md:px-12">
-          {/* Hamburger (left) — toggles the category mega-menu */}
-          <button
-            onClick={toggleMenu}
-            aria-label={menuOpen ? "Close menu" : "Open menu"}
-            aria-expanded={menuOpen}
-            aria-controls="mega-menu"
-            className="transition-opacity hover:opacity-70 focus:outline-none"
-          >
-            <Image
-              src="/logo/menu-hamburger.svg"
-              alt=""
-              width={30}
-              height={30}
-              // Icon art is solid black; invert it to white over the dark/transparent header.
-              className={`h-6 w-6 ${lightActive ? "" : "invert"}`}
-              aria-hidden
-            />
-          </button>
+        {/* The wordmark is centred on the bar, not on the space left over by the
+            icons — so the narrower side dictates how wide it may be. With four
+            controls stacked on the right it would have to shrink to ~110px on a
+            375px screen. Search therefore sits on the left on mobile, which
+            evens the two sides out and buys the wordmark its full width back.
+            min-h-13: the wordmark block is absolute and carries the market label
+            under the logo, so it can't push the bar taller by itself. */}
+        <div className="mx-auto flex min-h-13 max-w-[1600px] items-center justify-between px-6 md:min-h-0 md:px-12">
+          <div className="flex items-center gap-3.5">
+            {/* Hamburger — toggles the category mega-menu */}
+            <button
+              onClick={toggleMenu}
+              aria-label={menuOpen ? "Close menu" : "Open menu"}
+              aria-expanded={menuOpen}
+              aria-controls="mega-menu"
+              className="transition-opacity hover:opacity-70 focus:outline-none"
+            >
+              <Image
+                src="/logo/menu-hamburger.svg"
+                alt=""
+                width={30}
+                height={30}
+                // Icon art is solid black; invert it to white over the dark/transparent header.
+                className={`h-6 w-6 ${lightActive ? "" : "invert"}`}
+                aria-hidden
+              />
+            </button>
+            {searchButton("md:hidden")}
+          </div>
 
-          {/* Wordmark (center) */}
-          <Link
-            href="/"
-            aria-label="Eloris home"
-            className="absolute left-1/2 flex -translate-x-1/2 flex-col items-center transition-opacity duration-300 hover:opacity-80"
-          >
-            <Image
-              src="/logo/logo.svg"
-              alt="ÉLORIS"
-              width={158}
-              height={47}
-              priority
-              // Logo art is solid black; invert it to white over the dark/transparent header.
-              className={`h-10 w-auto md:h-8 ${lightActive ? "" : "invert"}`}
+          {/* Wordmark (center), with the market under it on mobile — the icon
+              row has no space for the currency switcher at phone widths.
+              The -translate-x-1/2 makes this a stacking context, so the market
+              dropdown's own z-index can't lift it above the mega-menu tiles
+              below; z-50 raises the whole block instead. */}
+          <div className="absolute left-1/2 z-50 flex -translate-x-1/2 flex-col items-center">
+            <Link
+              href="/"
+              aria-label="Eloris home"
+              className="transition-opacity duration-300 hover:opacity-80"
+            >
+              <Image
+                src="/logo/logo.svg"
+                alt="ÉLORIS"
+                // Declare the art's true size: a 158x25 (6.3:1) wordmark. A wrong
+                // height here also skews the pre-load aspect ratio, so the bar
+                // jumps as the logo lands.
+                width={158}
+                height={25}
+                priority
+                // Sized by width at both breakpoints with the height derived, so
+                // the 6.3:1 ratio always holds: snug on mobile, where the gap
+                // between the two icon groups constrains it, and the art's natural
+                // 158x25 on desktop. (Sizing desktop by height instead — md:h-8 —
+                // stretched it to 202px wide, oversized next to the 20px icons.)
+                // Logo art is solid black; invert it to white over the dark/transparent header.
+                className={`h-auto w-30 md:w-[158px] ${lightActive ? "" : "invert"}`}
+              />
+            </Link>
+            <CurrencySwitcher
+              variant="country"
+              tone={lightActive ? "light" : "dark"}
+              className="mt-0.5 md:hidden"
             />
-          </Link>
+          </div>
 
           {/* Icons (right) */}
           <div
-            className={`flex items-center gap-5 md:gap-7 ${lightActive ? "text-neutral-900" : "text-white"}`}
+            className={`flex items-center gap-3.5 md:gap-7 ${lightActive ? "text-neutral-900" : "text-white"}`}
           >
             <CurrencySwitcher
               compact
               tone={lightActive ? "light" : "dark"}
               className="hidden md:inline-flex"
             />
-            <button
-              onClick={() => setSearchOpen(true)}
-              aria-label="Search"
-              className={`transition-colors ${lightActive ? "hover:text-gold-500" : "hover:text-gold-200"}`}
-            >
-              <svg
-                className="h-5 w-5"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.2"
-                viewBox="0 0 24 24"
-              >
-                <circle cx="11" cy="11" r="7" />
-                <path strokeLinecap="round" d="m20 20-3.5-3.5" />
-              </svg>
-            </button>
+            {searchButton("hidden md:block")}
+            {/* Signed in: the shopper's initial in a filled disc. Signed out
+                (and until the session resolves): the outline figure. */}
             <Link
               href="/account"
-              aria-label="Account"
-              className={`hidden transition-colors sm:block ${lightActive ? "hover:text-gold-500" : "hover:text-gold-200"}`}
+              aria-label={initial ? `Account (${displayName})` : "Account"}
+              className={`transition-colors ${lightActive ? "hover:text-neutral-500" : "hover:text-white/70"}`}
             >
-              <svg
-                className="h-5 w-5"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.2"
-                viewBox="0 0 24 24"
-              >
-                <circle cx="12" cy="8" r="4" />
-                <path strokeLinecap="round" d="M4 20c0-4 3.6-6 8-6s8 2 8 6" />
-              </svg>
+              {initial ? (
+                <span
+                  className={`flex h-8 w-8 items-center justify-center rounded-full font-sans text-[13px] tracking-[0.05em] transition-opacity hover:opacity-80 ${
+                    lightActive
+                      ? "bg-neutral-900 text-white"
+                      : "bg-white text-neutral-900"
+                  }`}
+                >
+                  {initial}
+                </span>
+              ) : (
+                <svg
+                  className="h-5 w-5"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.2"
+                  viewBox="0 0 24 24"
+                >
+                  <circle cx="12" cy="8" r="4" />
+                  <path strokeLinecap="round" d="M4 20c0-4 3.6-6 8-6s8 2 8 6" />
+                </svg>
+              )}
             </Link>
             <Link
               href="/wishlist"
@@ -328,7 +393,10 @@ export default function Header({
           }`}
         >
           <div className="overflow-hidden">
-            <div className="mx-auto max-w-[1600px] px-6 pb-12 pt-7 md:px-12">
+            {/* The header is fixed, so a panel taller than the screen would run
+                off the bottom with no way to reach it. Cap it to the space under
+                the bar and let it scroll on its own. */}
+            <div className="mx-auto max-h-[calc(100dvh-5.5rem)] max-w-[1600px] overflow-y-auto overscroll-contain px-6 pb-12 pt-7 md:max-h-none md:overflow-visible md:px-12">
               {/* Tabs */}
               {/* Mobile: a single horizontal-scroll row (no ragged centred
                   wrapping); desktop: centred wrap. Scrollbar hidden. */}
@@ -409,6 +477,34 @@ export default function Header({
                   </Link>
                 </div>
               )}
+
+              {/* Account and the market sit in the bar; the wishlist is the one
+                  icon the bar has no room for on a phone, so it lives at the
+                  foot of the menu until the bar picks it up at sm. */}
+              <Link
+                href="/wishlist"
+                onClick={() => setMenuOpen(false)}
+                className="mt-12 flex items-center gap-2.5 border-t border-neutral-200 pt-6 font-sans text-[12px] uppercase tracking-[0.15em] text-neutral-700 transition-colors hover:text-neutral-900 sm:hidden"
+              >
+                <svg
+                  className="h-5 w-5"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.2"
+                  viewBox="0 0 24 24"
+                  aria-hidden
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M12 20.5 4.5 13a4.5 4.5 0 0 1 7.5-4.9A4.5 4.5 0 0 1 19.5 13L12 20.5Z"
+                  />
+                </svg>
+                Wishlist
+                {mounted && wishlistCount > 0 && (
+                  <span className="text-neutral-400">({wishlistCount})</span>
+                )}
+              </Link>
             </div>
           </div>
         </div>

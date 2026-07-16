@@ -6,6 +6,7 @@ import "./globals.css";
 import Providers from "./src/components/Providers";
 import Analytics from "./src/components/Analytics";
 import Track from "./src/components/Track";
+import Identify from "./src/components/Identify";
 import ComingSoon, { DEV_PREVIEW_COOKIE } from "./src/components/ComingSoon";
 import { getSiteSettings } from "./src/data/settings";
 import { getRates, detectCurrency } from "./src/lib/currency.server";
@@ -172,6 +173,9 @@ export default async function RootLayout({
             {/* Inside the unlocked branch: views of the Coming Soon lock are not
                 storefront traffic and would inflate Live View. */}
             <Track />
+            {/* Links this browser to the customer once they sign in, so the
+                Admin Live View can name a session. No-op while signed out. */}
+            <Identify />
           </Providers>
         )}
         <Analytics />

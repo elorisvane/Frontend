@@ -19,6 +19,20 @@ function currencyCountry(code: string): string {
   return COUNTRY_OVERRIDE[code] ?? code.slice(0, 2).toUpperCase();
 }
 
+// The market a currency stands for, shown under the wordmark on mobile. Falls
+// back to the currency code itself for anything not spelled out here.
+const MARKET_LABEL: Record<string, string> = {
+  USD: "USA",
+  CAD: "CANADA",
+  EUR: "EUROPE",
+  AED: "UAE",
+  INR: "INDIA",
+};
+
+function marketLabel(code: string): string {
+  return MARKET_LABEL[code] ?? code;
+}
+
 // "EUR — Euro" → "Euro" (label already resolves the code; keep just the name).
 function currencyName(code: string): string {
   const label = currencyLabel(code);
@@ -53,17 +67,23 @@ function GlobeIcon({ className }: { className?: string }) {
  * `tone` matches the surrounding surface (light/dark). `compact` shows just the
  * 3-letter code in the trigger (header); otherwise the full "EUR — Euro" label.
  * `menuPlacement="up"` opens the panel upward (for the footer).
+ *
+ * `variant="country"` shows the market ("USA") rather than the currency code and
+ * opens its list centred beneath itself — that's the mobile trigger that sits
+ * under the wordmark, where a right-anchored list would run off the screen.
  */
 export default function CurrencySwitcher({
   className = "",
   tone = "dark",
   compact = false,
   menuPlacement = "down",
+  variant = "menu",
 }: {
   className?: string;
   tone?: "light" | "dark";
   compact?: boolean;
   menuPlacement?: "up" | "down";
+  variant?: "menu" | "country";
 }) {
   const { code, available, setCurrency } = useCurrency();
 
@@ -136,6 +156,7 @@ export default function CurrencySwitcher({
       ? "border-neutral-200 bg-white text-neutral-900 placeholder-neutral-400 focus:border-neutral-900"
       : "border-white/15 bg-transparent text-white placeholder-white/40 focus:border-white/50";
 
+  const isCountry = variant === "country";
   const showSearch = available.length > 10;
   const q = query.trim().toLowerCase();
   const filtered = q
@@ -154,37 +175,49 @@ export default function CurrencySwitcher({
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-label="Currency"
-        className={`inline-flex items-center gap-1.5 font-sans text-[11px] tracking-[0.15em] transition-colors focus:outline-none ${triggerText}`}
+        className={
+          isCountry
+            ? `font-sans text-[10px] uppercase tracking-[0.3em] transition-colors focus:outline-none ${triggerText}`
+            : `inline-flex items-center gap-1.5 font-sans text-[11px] tracking-[0.15em] transition-colors focus:outline-none ${triggerText}`
+        }
       >
-        <span className="inline-flex h-3.5 w-5 shrink-0 items-center justify-center">
-          {SelectedFlag ? (
-            <SelectedFlag className="h-3.5 w-5 rounded-[1px]" />
-          ) : (
-            <GlobeIcon className="h-3.5 w-3.5 opacity-60" />
-          )}
-        </span>
-        <span>{triggerLabel}</span>
-        <svg
-          className={`h-3.5 w-3.5 shrink-0 opacity-70 transition-transform ${
-            open ? "rotate-180" : ""
-          }`}
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.6"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          aria-hidden="true"
-        >
-          <path d="m6 9 6 6 6-6" />
-        </svg>
+        {isCountry ? (
+          marketLabel(code)
+        ) : (
+          <>
+            <span className="inline-flex h-3.5 w-5 shrink-0 items-center justify-center">
+              {SelectedFlag ? (
+                <SelectedFlag className="h-3.5 w-5 rounded-[1px]" />
+              ) : (
+                <GlobeIcon className="h-3.5 w-3.5 opacity-60" />
+              )}
+            </span>
+            <span>{triggerLabel}</span>
+            <svg
+              className={`h-3.5 w-3.5 shrink-0 opacity-70 transition-transform ${
+                open ? "rotate-180" : ""
+              }`}
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.6"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <path d="m6 9 6 6 6-6" />
+            </svg>
+          </>
+        )}
       </button>
 
       {open && (
         <div
-          className={`absolute right-0 z-40 w-64 border shadow-xl ${menuSurface} ${
-            menuPlacement === "up" ? "bottom-full mb-2" : "top-full mt-2"
-          }`}
+          className={`absolute z-40 w-64 border shadow-xl ${menuSurface} ${
+            // Centred under the wordmark; right-anchored everywhere else, where
+            // the trigger already sits at the edge of its row.
+            isCountry ? "left-1/2 -translate-x-1/2" : "right-0"
+          } ${menuPlacement === "up" ? "bottom-full mb-2" : "top-full mt-2"}`}
         >
           {showSearch && (
             <div className="p-2">
