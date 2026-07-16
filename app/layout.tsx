@@ -7,6 +7,7 @@ import Providers from "./src/components/Providers";
 import Analytics from "./src/components/Analytics";
 import Track from "./src/components/Track";
 import Identify from "./src/components/Identify";
+import CookieConsent from "./src/components/CookieConsent";
 import ComingSoon, { DEV_PREVIEW_COOKIE } from "./src/components/ComingSoon";
 import { getSiteSettings } from "./src/data/settings";
 import { getRates, detectCurrency } from "./src/lib/currency.server";
@@ -176,6 +177,9 @@ export default async function RootLayout({
             {/* Links this browser to the customer once they sign in, so the
                 Admin Live View can name a session. No-op while signed out. */}
             <Identify />
+            {/* Gates both of the above: neither stores anything until this is
+                answered. Renders nothing once the visitor has chosen. */}
+            <CookieConsent />
           </Providers>
         )}
         <Analytics />

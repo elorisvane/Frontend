@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useSyncExternalStore } from "react";
 import { useAuth } from "../lib/auth";
 import { getSupabase } from "../lib/supabase";
 import { VISITOR_KEY, readOrMintId } from "../lib/visitorId";
+import { getConsent, subscribeConsent } from "../lib/consent";
 
 /**
  * Links this browser's anonymous visitor id to the signed-in customer, so the
@@ -18,9 +19,16 @@ import { VISITOR_KEY, readOrMintId } from "../lib/visitorId";
 export default function Identify() {
   const { user } = useAuth();
   const userId = user?.id ?? null;
+  const consent = useSyncExternalStore(
+    subscribeConsent,
+    getConsent,
+    () => null,
+  );
 
   useEffect(() => {
-    if (!userId) return;
+    // Signing in is not consent to be tracked: the link is only useful next to
+    // the analytics it annotates, so it lives or dies with the same permission.
+    if (!userId || consent !== "granted") return;
     let cancelled = false;
 
     void (async () => {
@@ -53,7 +61,7 @@ export default function Identify() {
     return () => {
       cancelled = true;
     };
-  }, [userId]);
+  }, [userId, consent]);
 
   return null;
 }

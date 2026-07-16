@@ -1,8 +1,9 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useSyncExternalStore } from "react";
 import { SESSION_KEY, VISITOR_KEY, readOrMintId } from "../lib/visitorId";
+import { getConsent, subscribeConsent } from "../lib/consent";
 
 /**
  * First-party page-view beacon feeding the Admin's Live View.
@@ -21,8 +22,17 @@ export default function Track() {
   // React runs effects twice in dev StrictMode; without this the first view of
   // every path would be logged as two sessions' worth of events.
   const lastSent = useRef<string | null>(null);
+  const consent = useSyncExternalStore(
+    subscribeConsent,
+    getConsent,
+    () => null,
+  );
 
   useEffect(() => {
+    // No id may be minted, and no view sent, until the visitor agrees. Bailing
+    // before `lastSent` is set matters: when consent lands mid-visit this effect
+    // re-runs and the page they're on is still sent, not skipped.
+    if (consent !== "granted") return;
     if (lastSent.current === pathname) return;
     lastSent.current = pathname;
 
@@ -66,7 +76,7 @@ export default function Track() {
       }),
       keepalive: true,
     }).catch(() => {});
-  }, [pathname]);
+  }, [pathname, consent]);
 
   return null;
 }
