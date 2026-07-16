@@ -16,11 +16,12 @@ import { supabaseAdmin } from "@/app/src/lib/supabaseAdmin";
 
 export const runtime = "nodejs";
 
-// Bounds match the CHECK constraints in 0020_storefront_events.sql.
+// Bounds match the CHECK constraints in 0020_storefront_events.sql / 0023.
 const MAX_ID = 64;
 const MAX_PATH = 500;
 const MAX_REFERRER = 500;
 const MAX_CITY = 120;
+const MAX_UTM = 100;
 
 // Page views are cheap but unbounded — trim the log occasionally rather than
 // standing up pg_cron for it. Runs on ~1 in 50 views, so it costs nothing on the
@@ -47,6 +48,63 @@ const coord = (value: string | null, bound: number): number | null => {
   return Math.round(n * 10) / 10;
 };
 
+/**
+ * Reduce the User-Agent to three coarse buckets for the Live View.
+ *
+ * The raw UA is deliberately NOT stored: in full it is a strong fingerprint,
+ * whereas "mobile / Safari / iOS" describes the visit without describing the
+ * visitor — the same line 0020 draws by never storing an IP.
+ *
+ * Sniffing beats the UA-CH client hints here because it needs no extra headers
+ * and this is a page-view beacon, not a rendering decision. Order matters: Edge,
+ * Opera and Samsung all put "Chrome" in their UA, and Chrome puts "Safari" in
+ * its own, so test the most specific first.
+ */
+function parseUserAgent(ua: string | null): {
+  deviceType: string | null;
+  browser: string | null;
+  os: string | null;
+} {
+  if (!ua) return { deviceType: null, browser: null, os: null };
+
+  const deviceType = /iPad|Tablet/i.test(ua)
+    ? "tablet"
+    : /Mobi|Android|iPhone|iPod/i.test(ua)
+      ? "mobile"
+      : "desktop";
+
+  const browser = /Edg\//.test(ua)
+    ? "Edge"
+    : /OPR\/|Opera/.test(ua)
+      ? "Opera"
+      : /SamsungBrowser/.test(ua)
+        ? "Samsung Internet"
+        : /Firefox\/|FxiOS/.test(ua)
+          ? "Firefox"
+          : /Chrome\/|CriOS/.test(ua)
+            ? "Chrome"
+            : /Safari\//.test(ua)
+              ? "Safari"
+              : null;
+
+  // iOS before macOS: an iPhone UA also carries "like Mac OS X". (An iPad on
+  // iPadOS 13+ claims to be a Mac outright — it reads as desktop/macOS here,
+  // which is as far as a UA string can honestly take us.)
+  const os = /Windows NT/.test(ua)
+    ? "Windows"
+    : /iPhone|iPad|iPod/.test(ua)
+      ? "iOS"
+      : /Mac OS X/.test(ua)
+        ? "macOS"
+        : /Android/.test(ua)
+          ? "Android"
+          : /Linux/.test(ua)
+            ? "Linux"
+            : null;
+
+  return { deviceType, browser, os };
+}
+
 export async function POST(request: Request) {
   try {
     const body = await request.json().catch(() => ({}));
@@ -68,6 +126,10 @@ export async function POST(request: Request) {
       city = clean(rawCity, MAX_CITY);
     }
 
+    // Parsed here rather than sent by the client: the header is already on the
+    // request, and the browser can't misreport what it's running.
+    const { deviceType, browser, os } = parseUserAgent(headers.get("user-agent"));
+
     const { error } = await supabaseAdmin.from("storefront_events").insert({
       session_id: sessionId,
       visitor_id: visitorId,
@@ -77,6 +139,12 @@ export async function POST(request: Request) {
       city,
       latitude: coord(headers.get("x-vercel-ip-latitude"), 90),
       longitude: coord(headers.get("x-vercel-ip-longitude"), 180),
+      device_type: deviceType,
+      browser,
+      os,
+      utm_source: clean(body.utmSource, MAX_UTM),
+      utm_medium: clean(body.utmMedium, MAX_UTM),
+      utm_campaign: clean(body.utmCampaign, MAX_UTM),
     });
     if (error) console.warn("[track] could not record page view:", error.message);
 

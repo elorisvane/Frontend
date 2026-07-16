@@ -43,10 +43,27 @@ export default function Track() {
         ? document.referrer
         : null;
 
+    // Campaign tags off the inbound link. They ride on the landing URL only, so
+    // most views send none — the Admin carries the entry view's tags across the
+    // whole session. `pathname` deliberately stays query-free: the search string
+    // can hold anything, and the tags we want are named explicitly here.
+    const params = new URLSearchParams(location.search);
+    const utmSource = params.get("utm_source");
+    const utmMedium = params.get("utm_medium");
+    const utmCampaign = params.get("utm_campaign");
+
     void fetch("/api/track", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ sessionId, visitorId, path: pathname, referrer }),
+      body: JSON.stringify({
+        sessionId,
+        visitorId,
+        path: pathname,
+        referrer,
+        utmSource,
+        utmMedium,
+        utmCampaign,
+      }),
       keepalive: true,
     }).catch(() => {});
   }, [pathname]);
